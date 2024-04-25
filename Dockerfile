@@ -1,4 +1,4 @@
-from ros:humble
+From ros:humble
 
 SHELL ["/bin/sh","-c"]
 # install git

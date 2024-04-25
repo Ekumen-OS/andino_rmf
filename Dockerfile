@@ -1,4 +1,4 @@
-rom ros:humble
+from ros:humble
 
 SHELL ["/bin/sh","-c"]
 # install git
@@ -13,9 +13,9 @@ RUN mkdir -p /ros2_ws/src
 WORKDIR /ros2_ws/src/
 
 # setup credentials
-ARG USER_NAME
+ARG USER
 ARG GITHUB_PAT
 
 # clone required packages
-RUN git clone https://${USER_NAME}:${GITHUB_PAT}@github.com/ekumenlabs/andino_fleet_open_rmf.git
+RUN git clone https://${USER}:${GITHUB_PAT}@github.com/ekumenlabs/andino_fleet_open_rmf.git
 

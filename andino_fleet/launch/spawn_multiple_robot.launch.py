@@ -26,7 +26,7 @@ def get_robots(context: LaunchContext, arg1: LaunchConfiguration, arg2: LaunchCo
             ]),
             launch_arguments={
                 'entity': TextSubstitution(text=robot_name + '_' + str(i)),
-                'initial_pose_x': TextSubstitution(text=str(i)),sudo 
+                'initial_pose_x': TextSubstitution(text=str(i)), 
                 'initial_pose_y': TextSubstitution(text=str(i))
             }.items()
         )

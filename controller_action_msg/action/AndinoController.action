@@ -1,0 +1,10 @@
+# goal definition
+geometry_msgs/PoseStamped goal_pose
+---
+# result
+bool success
+---
+# feedback definition
+geometry_msgs/PoseStamped current_pose
+geometry_msgs/Twist current_vel
+float32 distance_remaining

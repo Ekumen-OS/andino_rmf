@@ -3,7 +3,7 @@
 <package format="3">
   <name>controller_action_msg</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Custom messages for Andino fleet manager</description>
   <maintainer email="peera_desktop@todo.todo">peera_desktop</maintainer>
   <license>TODO: License declaration</license>
 

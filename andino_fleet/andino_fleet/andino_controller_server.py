@@ -16,12 +16,12 @@ class AndinoControllerServer(Node):
     
     def __init__(self, node_name: str, *, context: rclpy.Context = None, cli_args: rclpy.List[str] = None, namespace: str = None, use_global_arguments: bool = True, enable_rosout: bool = True, start_parameter_services: bool = True, parameter_overrides: rclpy.List[rclpy.Parameter] = None, allow_undeclared_parameters: bool = False, automatically_declare_parameters_from_overrides: bool = False) -> None:
         super().__init__(node_name)
-        rclpy.logging.set_logger_level(self.get_name(), LoggingSeverity.DEBUG)
+        rclpy.logging.set_logger_level(self.get_name(), LoggingSeverity.INFO)
         self._action_server = ActionServer(self,AndinoController,'andino_controller',self._execute_callback, cancel_callback=self._cancel_callback)
         
         # declare parameters
         self.declare_parameter('k_rho', 0.3)
-        self.declare_parameter('k_aplha', 0.8)
+        self.declare_parameter('k_alpha', 0.8)
         self.declare_parameter('k_beta', -0.15)
         self.declare_parameter('controller_frequency', 0.01)
         self.declare_parameter('distance_tolerance', 0.01)
@@ -45,7 +45,7 @@ class AndinoControllerServer(Node):
         goal_y = goal_msg.goal_pose.pose.position.y
         quat = (goal_msg.goal_pose.pose.orientation.x, goal_msg.goal_pose.pose.orientation.y, goal_msg.goal_pose.pose.orientation.z, goal_msg.goal_pose.pose.orientation.w)
         
-        (_,_,goal_yaw) = self._quaternion_to_euler(quat)
+        (_,_,goal_yaw,_) = self._quaternion_to_euler(quat)
         self.get_logger().info(f'[Goal] X: {goal_x} m | Goal Y: {goal_y} m | Goal Yaw:{goal_yaw} rad')
         
         self._go_to(goal_x, goal_y, quat, goal_handle, feedback_msg)
@@ -84,7 +84,6 @@ class AndinoControllerServer(Node):
         alpha = self._update_alpha(dx,dy,theta)
         beta = self._update_beta(alpha, theta)
 
-        ###### Dummy Loop for testing receiving odom message##################
         while rho > tol:
 
             if goal_handle.is_cancel_requested:
@@ -118,6 +117,7 @@ class AndinoControllerServer(Node):
             feedback.current_vel.angular.x = 0.0
             feedback.current_vel.angular.y = 0.0
             feedback.current_vel.angular.z = w
+            feedback.distance_remaining = rho
             
             self.get_logger().info(f'[Feedback] Current X: {feedback.current_pose.pose.position.x} m | Current Y: {feedback.current_pose.pose.position.y} m | Yaw:{self._yaw} rad')
             goal_handle.publish_feedback(feedback)
@@ -153,11 +153,13 @@ class AndinoControllerServer(Node):
         return rho
     
     def _update_alpha(self, x: float, y: float, theta: float):
-        alpha = (-1)*theta + math.atan2(y,x)
+        norm_theta = self._normalize_angle(theta)
+        alpha = (-1)*norm_theta + math.atan2(y,x)
         return alpha
     
     def _update_beta(self, alpha:float, theta: float):
-        beta = (-1)*theta - alpha
+        norm_theta = self._normalize_angle(theta)
+        beta = (-1)*norm_theta - alpha
         return beta
     
     def _update_states(self, x_goal : float, y_goal: float, orientation: List):
@@ -168,15 +170,15 @@ class AndinoControllerServer(Node):
     
     def stop_robot(self):
         vel_msg = Twist()
-        vel_msg.linear = 0.0
-        vel_msg.angular = 0.0
+        vel_msg.linear.x = 0.0
+        vel_msg.angular.z = 0.0
 
         self._vel_pub.publish(vel_msg)
 
     def move_robot(self, linear_twist: float , angular_twist: float):
         vel_msg = Twist()
-        vel_msg.linear = linear_twist
-        vel_msg.angular = angular_twist
+        vel_msg.linear.x = linear_twist
+        vel_msg.angular.z = angular_twist
 
         self._vel_pub.publish(vel_msg)
 

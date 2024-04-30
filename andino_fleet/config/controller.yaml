@@ -1,0 +1,8 @@
+/andino_server_node:
+  ros__parameters:
+    controller_frequency: 0.01
+    distance_tolerance: 0.01
+    k_aplha: 0.8
+    k_beta: -0.15
+    k_rho: 0.3
+    use_sim_time: true

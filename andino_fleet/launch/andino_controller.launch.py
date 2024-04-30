@@ -13,10 +13,12 @@ from launch_ros.actions import PushRosNamespace
 
 def generate_launch_description():
 
+    config_file = 'controller.yaml'
     andino_server_node = Node(
         package='andino_fleet',
         executable='andino_server',
-        name='andino_server_node'
+        name='andino_server_node',
+        parameters= [os.path.join(get_package_share_directory('andino_fleet'), 'config', config_file)]
     )
 
     return LaunchDescription([

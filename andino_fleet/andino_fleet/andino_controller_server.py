@@ -6,7 +6,7 @@ from rclpy.node import Node
 from rclpy import executors
 from controller_action_msg.action import AndinoController
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Twist, PoseStamped
+from geometry_msgs.msg import Twist
 from tf_transformations import euler_from_quaternion
 import time
 from typing import List
@@ -27,7 +27,7 @@ class AndinoControllerServer(Node):
         self.declare_parameter('distance_tolerance', 0.01)
 
         # odom topic
-        self._odom_sub = self.create_subscription(Odometry,'/odom',self._odom_callback,10)
+        self._odom_sub = self.create_subscription(Odometry,'/odom',self._odom_callback,50)
         self._odom_sub
         # velocity topic
         self._vel_pub = self.create_publisher(Twist,'/cmd_vel',10)
@@ -79,7 +79,7 @@ class AndinoControllerServer(Node):
         tol = self.get_parameter('distance_tolerance').get_parameter_value().double_value
 
         # get error states (delta_x, delta_y, theta)
-        dx,dy,theta = self._update_states(xg,yg,orientation)
+        dx,dy,theta = self._update_states(xg,yg)
         rho = self._update_rho(dx,dy)
         alpha = self._update_alpha(dx,dy,theta)
         beta = self._update_beta(alpha, theta)
@@ -93,7 +93,7 @@ class AndinoControllerServer(Node):
                 self.stop_robot()
                 break
             
-            dx,dy,theta = self._update_states(xg,yg,orientation)
+            dx,dy,theta = self._update_states(xg,yg)
             rho = self._update_rho(dx,dy)
             alpha = self._update_alpha(dx,dy,theta)
             beta = self._update_beta(alpha, theta)
@@ -125,6 +125,8 @@ class AndinoControllerServer(Node):
             self.move_robot(v,w)
             time.sleep(freq)
             
+        self.stop_robot()
+            
 
     def _odom_callback(self,msg: Odometry):
         self._curr_x = msg.pose.pose.position.x
@@ -153,19 +155,17 @@ class AndinoControllerServer(Node):
         return rho
     
     def _update_alpha(self, x: float, y: float, theta: float):
-        norm_theta = self._normalize_angle(theta)
-        alpha = (-1)*norm_theta + math.atan2(y,x)
-        return alpha
+        alpha = (-1)*theta + math.atan2(y,x)
+        return self._normalize_angle(alpha)
     
     def _update_beta(self, alpha:float, theta: float):
-        norm_theta = self._normalize_angle(theta)
-        beta = (-1)*norm_theta - alpha
-        return beta
+        beta = (-1)*theta - alpha
+        return self._normalize_angle(beta)
     
-    def _update_states(self, x_goal : float, y_goal: float, orientation: List):
+    def _update_states(self, x_goal : float, y_goal: float):
         delta_x = x_goal - self._curr_x
         delta_y = y_goal - self._curr_y
-        theta = self._quaternion_to_euler(orientation)[2] - self._yaw
+        theta = self._yaw
         return (delta_x,delta_y,theta)
     
     def stop_robot(self):

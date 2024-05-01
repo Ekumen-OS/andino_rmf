@@ -1,25 +1,28 @@
-import rclpy
+import math
+import time
+
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
+from rclpy import executors
 from rclpy.action import ActionServer, CancelResponse
 from rclpy.action.server import ServerGoalHandle
 from rclpy.logging import LoggingSeverity
 from rclpy.node import Node
-from rclpy import executors
-from controller_action_msg.action import AndinoController
-from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Twist
 from tf_transformations import euler_from_quaternion
-import time
 from typing import List
-import math
+
+import rclpy
+
+from controller_action_msg.action import AndinoController
 
 class AndinoControllerServer(Node):
     
-    def __init__(self, node_name: str, *, context: rclpy.Context = None, cli_args: rclpy.List[str] = None, namespace: str = None, use_global_arguments: bool = True, enable_rosout: bool = True, start_parameter_services: bool = True, parameter_overrides: rclpy.List[rclpy.Parameter] = None, allow_undeclared_parameters: bool = False, automatically_declare_parameters_from_overrides: bool = False) -> None:
+    def __init__(self, node_name: str = 'andino_controller_node', *, context: rclpy.Context = None, cli_args: rclpy.List[str] = None, namespace: str = None, use_global_arguments: bool = True, enable_rosout: bool = True, start_parameter_services: bool = True, parameter_overrides: rclpy.List[rclpy.Parameter] = None, allow_undeclared_parameters: bool = False, automatically_declare_parameters_from_overrides: bool = False) -> None:
         super().__init__(node_name)
         rclpy.logging.set_logger_level(self.get_name(), LoggingSeverity.INFO)
         self._action_server = ActionServer(self,AndinoController,'andino_controller',self._execute_callback, cancel_callback=self._cancel_callback)
         
-        # declare parameters
+        # declare controller tuning parameters
         self.declare_parameter('k_rho', 0.3)
         self.declare_parameter('k_alpha', 0.8)
         self.declare_parameter('k_beta', -0.15)
@@ -28,11 +31,10 @@ class AndinoControllerServer(Node):
 
         # odom topic
         self._odom_sub = self.create_subscription(Odometry,'/odom',self._odom_callback,50)
-        self._odom_sub
         # velocity topic
         self._vel_pub = self.create_publisher(Twist,'/cmd_vel',10)
-        self.get_logger().info('Starting Andino Controller Server...')
-
+        self.get_logger().info('Andino Controller Server Started')
+    # This callback is called by the action server to execute tasks for a specific goal handle
     def _execute_callback(self,goal_handle: ServerGoalHandle):
         self.get_logger().info('Andino Start Moving...')
         ##################################################
@@ -49,7 +51,6 @@ class AndinoControllerServer(Node):
         self.get_logger().info(f'[Goal] X: {goal_x} m | Goal Y: {goal_y} m | Goal Yaw:{goal_yaw} rad')
         
         self._go_to(goal_x, goal_y, quat, goal_handle, feedback_msg)
-        #################################################
 
         if goal_handle.is_cancel_requested:
             goal_handle.canceled()
@@ -58,16 +59,13 @@ class AndinoControllerServer(Node):
         goal_handle.succeed()
         # send result message
         result = AndinoController.Result()
-        ##################################
-        # result wrapper
         result.success = True
-        ##################################
         return result
 
     def _cancel_callback(self, goal_handle: ServerGoalHandle):
         self.get_logger().info('Received cancel request :(')
         return CancelResponse.ACCEPT
-
+    # This method implements the controller logic and is called by the execution callback given a goal request
     def _go_to(self, xg: float, yg: float, orientation: List, goal_handle: ServerGoalHandle, feedback):
         
         # set control parameters and states
@@ -97,10 +95,10 @@ class AndinoControllerServer(Node):
             rho = self._update_rho(dx,dy)
             alpha = self._update_alpha(dx,dy,theta)
             beta = self._update_beta(alpha, theta)
-            ###############################################
+            # calculates the linear and angular velocity
             v = k_rho * rho
             w = k_alpha * alpha + k_beta * beta
-            ###############################################
+            # defines the values of the feedback message
             feedback.current_pose.header.stamp = self.get_clock().now().to_msg()
             feedback.current_pose.pose.position.x = self._curr_x
             feedback.current_pose.pose.position.y = self._curr_y

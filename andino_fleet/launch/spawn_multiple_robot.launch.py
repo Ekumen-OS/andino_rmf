@@ -19,6 +19,7 @@ def get_robots(context: LaunchContext, arg1: LaunchConfiguration, arg2: LaunchCo
     robot_actions = []
 
     for i in range(1, int(robot_num) + 1):
+        # launch description for 1 robot
         robot = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([
                 os.path.join(get_package_share_directory('andino_gz'), 'launch'),
@@ -30,10 +31,19 @@ def get_robots(context: LaunchContext, arg1: LaunchConfiguration, arg2: LaunchCo
                 'initial_pose_y': TextSubstitution(text=str(i))
             }.items()
         )
+        # launch description for 1 action server
+        action_server = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([
+                os.path.join(get_package_share_directory('andino_fleet'), 'launch'),
+                '/andino_controller.launch.py'
+            ])
+        )
+        # wrap robot inside a namespace
         robot_w_namespace = GroupAction(
             actions=[
                 PushRosNamespace(robot_name + '_' + str(i)),
-                robot
+                robot,
+                action_server,
             ]
         )
         robot_actions.append(robot_w_namespace)

@@ -2,35 +2,22 @@ import os
 
 
 from ament_index_python.packages import get_package_share_directory
-from launch import LaunchDescription, LaunchContext
-from launch.actions import IncludeLaunchDescription
+from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription, ExecuteProcess
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration, TextSubstitution
 from launch_ros.actions import Node
 from launch.actions import GroupAction
 from launch_ros.actions import PushRosNamespace
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.actions import OpaqueFunction
+import yaml
 
-
-def get_robots(context: LaunchContext, arg1: LaunchConfiguration, arg2: LaunchConfiguration):
-    robot_num = context.perform_substitution(arg1)
-    robot_name = context.perform_substitution(arg2)
+# helper function to launch multiple controller servers
+def launch_servers(config: dict):
     robot_actions = []
 
-    for i in range(1, int(robot_num) + 1):
-        # launch description for 1 robot
-        robot = IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([
-                os.path.join(get_package_share_directory('andino_gz'), 'launch'),
-                '/spawn_robot.launch.py'
-            ]),
-            launch_arguments={
-                'entity': TextSubstitution(text=robot_name + '_' + str(i)),
-                'initial_pose_x': TextSubstitution(text=str(i)), 
-                'initial_pose_y': TextSubstitution(text=str(i))
-            }.items()
-        )
+    for k,v in config.items():
+
         # launch description for 1 action server
         action_server = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([
@@ -41,8 +28,7 @@ def get_robots(context: LaunchContext, arg1: LaunchConfiguration, arg2: LaunchCo
         # wrap robot inside a namespace
         robot_w_namespace = GroupAction(
             actions=[
-                PushRosNamespace(robot_name + '_' + str(i)),
-                robot,
+                PushRosNamespace(str(k)),
                 action_server,
             ]
         )
@@ -50,17 +36,38 @@ def get_robots(context: LaunchContext, arg1: LaunchConfiguration, arg2: LaunchCo
 
     return robot_actions
 
+# helper function to convert dictionary to string for parsing to execution process
+def convert_to_text(data: dict):
+    text = '\"'
+    for k,v in data.items():
+        robot_data = str(k) + '=' + str(v) + ';'
+        text += robot_data
+    text += '\"'
+    return text
+
 def generate_launch_description():
-
-    robotNumArgs = DeclareLaunchArgument(
-        'robot_num',default_value=TextSubstitution(text="2"),description='Number of the spawned robot'
+    config_name = 'spawn_robots.yaml'
+    config__file_path = os.path.join(get_package_share_directory('andino_fleet'),'config',config_name)
+    with open(config__file_path,'r') as f:
+        config = yaml.load(f, Loader=yaml.SafeLoader)
+    
+    # convert dictionary to text for using as an spawning argument
+    config_txt = convert_to_text(config)
+    # execute andino simulation
+    robots = ExecuteProcess(
+        cmd=[[
+            'ros2 launch andino_gz andino_gz.launch.py ',
+            'robots:=',
+            config_txt,
+            ' rviz:=', 'false'
+        ]],
+        shell=True
     )
-    robotNameArgs = DeclareLaunchArgument(
-        'robot_name',default_value=TextSubstitution(text="andino"),description='Name of the robot'
-    )
+    # launch action servers
+    controller_servers = launch_servers(config=config)
 
-    return LaunchDescription([
-        robotNumArgs,
-        robotNameArgs,
-        OpaqueFunction(function=get_robots, args=[LaunchConfiguration('robot_num'), LaunchConfiguration('robot_name')])
-    ])
+    ld = LaunchDescription()
+    ld.add_action(robots)
+    for g in controller_servers:
+        ld.add_action(g)
+    return ld

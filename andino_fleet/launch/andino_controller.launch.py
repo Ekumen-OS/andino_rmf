@@ -10,9 +10,8 @@ from launch_ros.actions import Node
 from launch.actions import GroupAction
 from launch_ros.actions import PushRosNamespace
 
-
+'''This launch file is used to launch an action server for 1 robot.'''
 def generate_launch_description():
-
     config_file = 'controller.yaml'
     andino_server_node = Node(
         package='andino_fleet',

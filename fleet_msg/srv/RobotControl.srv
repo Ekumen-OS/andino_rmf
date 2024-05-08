@@ -1,0 +1,6 @@
+# request message of robot name and final pose [x, y, yaw (rad)]
+string robot_name
+float64[] final_pose
+---
+# result message showing the request is processed successfully
+bool success

@@ -1,4 +1,0 @@
-string robot_name
-string action_server_name
----
-bool available

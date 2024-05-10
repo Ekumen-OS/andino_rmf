@@ -45,14 +45,13 @@ class AndinoFleetManager(Node):
        # check if robot_name exists in collection
        if req.robot_name not in self._robot_goals:
            self._robot_goals[req.robot_name] = deque([req.final_pose])
-           print(self._robot_goals[req.robot_name])
+           self.get_logger().debug(f'{req.robot_name} goal: {self._robot_goals[req.robot_name]}')
            # create new controller client
            self._create_controller_client(req.robot_name)
            self.send_goal(req.robot_name)
        else:
            self._robot_goals[req.robot_name].append(req.final_pose)
            self.send_goal(req.robot_name)
-
 
        resp.success = True
        self.get_logger().info(f'Received final pose [{req.final_pose[0]}, {req.final_pose[1]}, {req.final_pose[2]}] for {req.robot_name}')
@@ -84,8 +83,9 @@ class AndinoFleetManager(Node):
        if not self._robot_goals[robot_name]:
            self.get_logger().info(f'No goals available for {robot_name}.')
            return
-       goal = self._robot_goals[robot_name].popleft()
-       print(f'Goal to send: [{goal[0]}, {goal[1]}, {goal[2]}]')
+       goal = self._robot_goals[robot_name][0]
+       self.get_logger().debug(f'Goal to send: [{goal[0]}, {goal[1]}, {goal[2]}]\n')
+       self.get_logger().debug(f'Queue length: {len(self._robot_goals[robot_name])}')
        # create goal msg
        goal_msg = AndinoController.Goal()
        goal_msg.goal_pose.pose.position.x = goal[0]
@@ -104,7 +104,11 @@ class AndinoFleetManager(Node):
            return
        self._send_goal_future = self._controller_clients[robot_name].send_goal_async(goal_msg, feedback_callback=self._feedback_callback)
        self._send_goal_future.add_done_callback(self._goal_response_callback)
-      
+       # pop the goal
+       self._robot_goals[robot_name].popleft()
+       self.get_logger().debug(f'Removed the goal from queue. Queue length: {len(self._robot_goals[robot_name])}')
+
+
    def _goal_response_callback(self, future: Future):
        goal_handle = future.result()
        if not goal_handle.accepted:
@@ -123,7 +127,7 @@ class AndinoFleetManager(Node):
 
    def _feedback_callback(self, feedback_msg):
        feedback = feedback_msg.feedback
-       self.get_logger().info('Distance Remaining: {0}'.format(feedback.distance_remaining))
+       self.get_logger().info('Distance Remaining: {0}'.format(round(feedback.distance_remaining,3)))
 
 
 def main(args=None):

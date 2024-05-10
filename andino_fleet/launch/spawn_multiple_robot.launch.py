@@ -4,9 +4,6 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, ExecuteProcess
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, TextSubstitution
-from launch_ros.actions import Node
 from launch.actions import GroupAction
 from launch_ros.actions import PushRosNamespace
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -17,13 +14,19 @@ def launch_servers(config: dict):
     robot_actions = []
 
     for k,v in config.items():
-
+        # topic remapping
+        topic_remappings = {
+            'velocity_topic': '/'+str(k)+'/cmd_vel',
+            'odom_topic': '/'+str(k)+'/odom',
+        }
+        
         # launch description for 1 action server
         action_server = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([
                 os.path.join(get_package_share_directory('andino_fleet'), 'launch'),
                 '/andino_controller.launch.py'
-            ])
+            ]),
+            launch_arguments=topic_remappings.items()
         )
         # wrap robot inside a namespace
         robot_w_namespace = GroupAction(

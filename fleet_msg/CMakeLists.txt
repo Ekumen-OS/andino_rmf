@@ -23,6 +23,8 @@ endif()
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/RobotControl.srv"
+  "srv/SendGoal.srv"
+  "srv/CancelGoal.srv"
 )
 
 ament_export_dependencies(rosidl_default_runtime)

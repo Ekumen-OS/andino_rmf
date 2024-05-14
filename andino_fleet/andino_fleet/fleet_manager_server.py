@@ -10,13 +10,14 @@ from rclpy.action import ActionClient
 from rclpy.task import Future
 
 
-from fleet_msg.srv import RobotControl
+from fleet_msg.srv import RobotControl, SendGoal, CancelGoal
 from controller_action_msg.action import AndinoController
 from geometry_msgs.msg import Quaternion
 
 
 from collections import deque
-from turtle_tf2_py.turtle_tf2_broadcaster import quaternion_from_euler
+from tf_transformations import quaternion_from_euler
+
 
 
 class AndinoFleetManager(Node):
@@ -27,16 +28,20 @@ class AndinoFleetManager(Node):
        self._group1 = MutuallyExclusiveCallbackGroup()
        self._group2 = MutuallyExclusiveCallbackGroup()
        # define a server for setting robot control information
-       self._info_server = self.create_service(RobotControl, 'robot_control_info_server', self._control_info_callback, callback_group=self._group1)
+       self._add_goal_srv = self.create_service(RobotControl, 'add_goal_server', self._add_goal_callback, callback_group=self._group1)
+       self._send_goal_srv = self.create_service(SendGoal, 'send_goal_server', self._send_goal_callback, callback_group=self._group1)
+       self._cancel_goal_srv = self.create_service(CancelGoal, 'cancel_goal_server', self._cancel_goal_callback, callback_group=self._group1)
        # a robot_goals containing robot as key and goals as value
        self._robot_goals = dict() # self._robot_goals[robot] = [goal1, goal2, ...., goaln]
        # controller clients containing robot as key and client as value
        self._controller_clients = dict() # self._controller_clients[robot] = [client1, client2, ..., clientn]
+       # goal handles
+       self._goal_handles = dict()
        # logging
        self.get_logger().info('Andino Fleet Manager Started')
   
-   # callback process for querying requested action server
-   def _control_info_callback(self, req: SrvTypeRequest, resp: SrvTypeResponse):
+   # callback process for adding goals to manager
+   def _add_goal_callback(self, req: SrvTypeRequest, resp: SrvTypeResponse):
        # check if robot is online
        if self._check_robot_online(req.robot_name) is False:
            resp.success = False
@@ -48,15 +53,49 @@ class AndinoFleetManager(Node):
            self.get_logger().debug(f'{req.robot_name} goal: {self._robot_goals[req.robot_name]}')
            # create new controller client
            self._create_controller_client(req.robot_name)
-           self.send_goal(req.robot_name)
+           self.get_logger().info(f'Created new client for {req.robot_name}')
        else:
            self._robot_goals[req.robot_name].append(req.final_pose)
-           self.send_goal(req.robot_name)
 
        resp.success = True
-       self.get_logger().info(f'Received final pose [{req.final_pose[0]}, {req.final_pose[1]}, {req.final_pose[2]}] for {req.robot_name}')
+       self.get_logger().info(f'Added a final pose [{req.final_pose[0]}, {req.final_pose[1]}, {req.final_pose[2]}] for {req.robot_name}')
        return resp
-  
+   
+   # callback process for sending goals
+   def _send_goal_callback(self, req: SrvTypeRequest, resp: SrvTypeResponse):
+       # check if the robot is online
+       if self._check_robot_online(req.robot_name) is False:
+           resp.result = False
+           self.get_logger().info(f'Cannot send goal. {req.robot_name} is not online!')
+           return resp
+       # check if robot_name exists in collection
+       if req.robot_name not in self._robot_goals:
+           resp.result = False
+           self.get_logger().info(f'{req.robot_name} does not exist in queue. Add this robot to the queue before sending the goal')
+           return resp
+       
+       self.send_goal(req.robot_name)
+       self.get_logger().info(f'Sent a final pose for {req.robot_name}')
+       resp.result = True
+       return resp
+    
+    # callback process for canceling goals
+   def _cancel_goal_callback(self, req: SrvTypeRequest, resp: SrvTypeResponse):
+       # check if the robot is online
+       if self._check_robot_online(req.robot_name) is False:
+           resp.result = False
+           self.get_logger().info(f'Cannot cancel goal. {req.robot_name} is not online!')
+           return resp
+       # check if robot_name exists in collection
+       if req.robot_name not in self._robot_goals:
+           resp.result = False
+           self.get_logger().info(f'Cannot cancel goal. {req.robot_name} does not exist in queue')
+           return resp
+       
+       self.cancel_goal(req.robot_name)
+       resp.result = True
+       return resp
+       
    # Check if the controlelr server available given a robot name
    def _check_robot_online(self, robot_name: str):
        # get the list of actions
@@ -70,7 +109,7 @@ class AndinoFleetManager(Node):
    def _create_controller_client(self, robot_name: str):
        action_name = '/'+robot_name+'/andino_controller'
        # create controller client
-       controller_client = ActionClient(self, AndinoController, action_name, callback_group=self._group2)
+       controller_client = ActionClient(self, AndinoController, action_name, callback_group=self._group1)
        self._controller_clients[robot_name] = controller_client
        self.get_logger().info(f'Client for {action_name} created')
       
@@ -102,19 +141,25 @@ class AndinoFleetManager(Node):
        if not self._controller_clients[robot_name].server_is_ready():
            self.get_logger().info(f'{robot_name} controller server is not ready!')
            return
+       
        self._send_goal_future = self._controller_clients[robot_name].send_goal_async(goal_msg, feedback_callback=self._feedback_callback)
-       self._send_goal_future.add_done_callback(self._goal_response_callback)
+       self._send_goal_future.add_done_callback(lambda future: self._goal_response_callback(robot_name, future))
        # pop the goal
        self._robot_goals[robot_name].popleft()
        self.get_logger().debug(f'Removed the goal from queue. Queue length: {len(self._robot_goals[robot_name])}')
+   
+   # Cancel goal given a robot name
+   def cancel_goal(self, robot_name: str):
+       future = self._goal_handles[robot_name].cancel_goal_async()
+       future.add_done_callback(self._cancel_response_callback)
 
-
-   def _goal_response_callback(self, future: Future):
+   def _goal_response_callback(self, robot_name: str, future: Future):
        goal_handle = future.result()
        if not goal_handle.accepted:
            self.get_logger().info('Goal rejected :(')
            return
-      
+       
+       self._goal_handles[robot_name] = goal_handle
        self.get_logger().info('Goal accepted :)')
        self._get_result_future = goal_handle.get_result_async()
        self._get_result_future.add_done_callback(self._get_result_callback)
@@ -129,6 +174,9 @@ class AndinoFleetManager(Node):
        feedback = feedback_msg.feedback
        self.get_logger().info('Distance Remaining: {0}'.format(round(feedback.distance_remaining,3)))
 
+   def _cancel_response_callback(self, future: Future):
+       cancel_response = future.result()
+       self.get_logger().info('Goal successfully canceled :)')
 
 def main(args=None):
    rclpy.init(args=args)

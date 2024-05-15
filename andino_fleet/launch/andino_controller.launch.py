@@ -9,7 +9,7 @@ from launch_ros.actions import Node
 
 '''This launch file is used to launch an action server for 1 robot.'''
 def generate_launch_description():
-    
+    # Declare the launch configuration
     cmd_vel = LaunchConfiguration('velocity_topic')
     odom = LaunchConfiguration('odom_topic')
 

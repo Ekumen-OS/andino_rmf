@@ -118,7 +118,6 @@ class AndinoFleetManager(Node):
        if robot_name not in self._robot_goals:
            self.get_logger().info(f'Unable to send goal. {robot_name} controller server is unavailable!')
            return
-       # pop left goal
        if not self._robot_goals[robot_name]:
            self.get_logger().info(f'No goals available for {robot_name}.')
            return
@@ -164,11 +163,9 @@ class AndinoFleetManager(Node):
        self._get_result_future = goal_handle.get_result_async()
        self._get_result_future.add_done_callback(self._get_result_callback)
 
-
    def _get_result_callback(self, future: Future):
        result = future.result().result
        self.get_logger().info('Result: {0}'.format(result.success))
-
 
    def _feedback_callback(self, feedback_msg):
        feedback = feedback_msg.feedback
@@ -181,13 +178,9 @@ class AndinoFleetManager(Node):
 def main(args=None):
    rclpy.init(args=args)
 
-
    fleet_manager = AndinoFleetManager()
-
-
    executor = executors.MultiThreadedExecutor()
    executor.add_node(fleet_manager)
-
 
    try:
        executor.spin()

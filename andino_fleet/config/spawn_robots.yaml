@@ -1,3 +1,13 @@
+# This file configures the robots that spawn on the simulation and sets the position of each one.
+# The configuration values should follow the next pattern:
+
+# name_of_robot:
+#    x:
+#    y:
+#    z:
+#    yaw:
+
+# Take into account that the values for the x, y and z fields depend on the simulation environment.
 andino1:
   x: 0.0
   y: 0.0
@@ -8,8 +18,4 @@ andino2:
   y: 0.1
   z: 0.1
   yaw: 0.0
-andino3:
-  x: -0.4
-  y: -0.1
-  z: 0.1
-  yaw: 0.0
+

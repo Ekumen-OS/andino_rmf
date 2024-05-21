@@ -1,0 +1,6 @@
+# request service message to send a goal of robot_name
+# it assumes that the goal is already fed to the manager by add_goal service
+string robot_name
+---
+# result whether the goal is sent successfully
+bool result

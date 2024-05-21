@@ -191,8 +191,8 @@ def main(args=None):
     try:
         executor.spin()
     except KeyboardInterrupt:
+        andino_server.destroy_node()
         andino_server.get_logger().info('KeyboardInterrupt. Shutting Down...')
     
-
 if __name__== '__main__':
     main()

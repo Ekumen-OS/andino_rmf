@@ -15,5 +15,31 @@ This package intends to utilize OpenRMF to send a high-level task planning to An
 </ul>
 
 ## Usage
+To launch multiple robots with corresponding controller servers,
+
+```ros2 launch andino_fleet spawn_multiple_robot.launch.py```
+
+<b>Note: </b> To add/remove robot(s), edit *spawn_robots.yaml* under andino_fleet/config folder. There are two robots by default.
+
+To run a fleet manager,
+
+```ros2 run andino_fleet fleet_manager```
+
+After the fleet manager node is running, it allows users to interact with the robot fleet as the following.
+
+### Add a goal
+Add a goal to the manager for a specific robot, given the robot name and the final pose,
+
+```ros2 service call /add_goal_server fleet_msg/srv/RobotControl "{robot_name: 'andino2', final_pose: [0.1,0,0]}"```
+
+### Send a goal
+Start moving a robot by sending a goal to the manager, assuming that the goal is already added,
+
+```ros2 service call /send_goal_server fleet_msg/srv/SendGoal "{robot_name: 'andino2'}"```
+
+### Cancel a goal
+Once a goal is being executed, users can cancel the goal given a robot name by,
+
+```ros2 service call /cancel_goal_server fleet_msg/srv/CancelGoal "{robot_name: 'andino2'}"```
 
 

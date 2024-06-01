@@ -16,27 +16,37 @@ This package intends to utilize OpenRMF to send a high-level task planning to An
 ## Build
 1. To build this package, ensure that ROS workspace is already in your system. If not, then create a workspace
 
-```source /opt/ros/humble/setup.bash```
-```mkdir -p ~/ros2_ws/src```
-```cd ~/ros2_ws/src```
+```sh
+source /opt/ros/humble/setup.bash
+mkdir -p ~/ros2_ws/src
+cd ~/ros2_ws/src
+```
 
 2. Clone this repository in ```src``` folder
 
-```https://github.com/ekumenlabs/andino_fleet_open_rmf.git```
+```
+https://github.com/ekumenlabs/andino_fleet_open_rmf.git
+```
 
 3. Install this package dependencies
 
-```rosdep install --from-paths src -i -y```
+```
+rosdep install --from-paths src -i -y
+```
 
 4. Build this package and source the install workspace
 
-```colcon build```
-```source install/setup.bash```
+```sh
+colcon build
+source install/setup.bash
+```
 
 ## Usage
 To launch multiple robots with corresponding controller servers,
 
-```ros2 launch andino_fleet spawn_multiple_robot.launch.py```
+```
+ros2 launch andino_fleet spawn_multiple_robot.launch.py
+```
 
 <img src="https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/docs/Screenshot%20from%202024-05-21%2010-18-39.png" alt="Multi-robot simulation" title="Multi-robot simulation" width="300"/>
 
@@ -44,21 +54,29 @@ To launch multiple robots with corresponding controller servers,
 
 To run the implemented fleet manager,
 
-```ros2 run andino_fleet fleet_manager```
+```
+ros2 run andino_fleet fleet_manager
+```
 
 After the fleet manager node is running, it allows users to interact with the robot fleet as the following.
 
 ### Add a goal
 Add a goal to the manager for a specific robot, given the robot name and the final pose,
 
-```ros2 service call /add_goal_server fleet_msg/srv/RobotControl "{robot_name: 'andino2', final_pose: [0.1,0,0]}"```
+```
+ros2 service call /add_goal_server fleet_msg/srv/RobotControl "{robot_name: 'andino2', final_pose: [0.1,0,0]}"
+```
 
 ### Send a goal
 Start moving a robot by sending a goal to the manager, assuming that the goal is already added,
 
-```ros2 service call /send_goal_server fleet_msg/srv/SendGoal "{robot_name: 'andino2'}"```
+```
+ros2 service call /send_goal_server fleet_msg/srv/SendGoal "{robot_name: 'andino2'}"
+```
 
 ### Cancel a goal
 Once a goal is being executed, users can cancel the goal given a robot name by,
 
-```ros2 service call /cancel_goal_server fleet_msg/srv/CancelGoal "{robot_name: 'andino2'}"```
+```
+ros2 service call /cancel_goal_server fleet_msg/srv/CancelGoal "{robot_name: 'andino2'}"
+```

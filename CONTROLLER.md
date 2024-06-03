@@ -1,5 +1,0 @@
-# Andino Controller
-
-## Concept
-
-## Implementation

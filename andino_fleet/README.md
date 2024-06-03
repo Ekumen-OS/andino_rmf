@@ -27,7 +27,7 @@ The goal of a fleet manager is to manage multiple robots so that it is able to s
 
 The followings are design consideration to be used inside the fleet manager node.
 
-- Be able to add, send, and cancel a goal to individuals
+- Be able to add, send, and cancel a goal to individual robots
 - Multiple ROS2 services are used in order to add/send/cancel a goal
 - Use [custom service messages]([/home/ubuntu/andino_fleet_open_rmf/src/andino_fleet_open_rmf/fleet_msg/srv](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/readme-writing/fleet_msg/srv)) for adding/sending/canceling a goal
 - Be able to get a current position of each robot

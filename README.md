@@ -1,7 +1,7 @@
 # Andino Fleet with OpenRMF
 This package intends to utilize OpenRMF to send a high-level task planning to Andino robot fleet. To achieve this goal, three main developments are included as the following.
-  - [Controller server](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/andino_fleet/README.md) for an Andino robot
-  - [Fleet manager](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/andino_fleet/README.md) to manage multiple robots
+  - [Controller server](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/andino_fleet/README.md#controller-server) for an Andino robot
+  - [Fleet manager](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/andino_fleet/README.md#fleet-manager) to manage multiple robots
   - Fleet adapter to bridge a fleet manager with OpenRMF API
 
 ## Project dependencies

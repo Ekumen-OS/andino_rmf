@@ -42,7 +42,7 @@ source install/setup.bash
 ```
 
 ## Usage
-To launch multiple robots with corresponding controller servers,
+To launch multiple robots with corresponding [controller servers](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/CONTROLLER.md),
 
 ```
 ros2 launch andino_fleet spawn_multiple_robot.launch.py
@@ -52,7 +52,7 @@ ros2 launch andino_fleet spawn_multiple_robot.launch.py
 
 *<b>Note: </b> To add/remove robot(s), edit <b>spawn_robots.yaml</b> under <b>andino_fleet/config</b> folder. There are two robots by default.*
 
-To run the implemented fleet manager,
+To run the implemented [fleet manager](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/MANAGER.md),
 
 ```
 ros2 run andino_fleet fleet_manager

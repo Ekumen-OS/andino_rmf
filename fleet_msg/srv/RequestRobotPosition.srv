@@ -1,0 +1,5 @@
+# request service message to get current position of robot_name
+string robot_name
+---
+# result is current position expressed in [x, y, yaw]
+float64[] current_position

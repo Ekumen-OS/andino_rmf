@@ -305,8 +305,8 @@ def main(argv=sys.argv):
         param = Parameter("use_sim_time", Parameter.Type.BOOL, True)
         node.set_parameters([param])
 
-     if args.server_uri == "":
-        server_uri = None
+        if args.server_uri == "":
+            server_uri = None
     else:
         server_uri = args.server_uri
 

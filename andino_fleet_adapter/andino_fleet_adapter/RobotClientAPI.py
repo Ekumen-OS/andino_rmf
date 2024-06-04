@@ -20,13 +20,14 @@
     will need to make http request calls to the appropriate endpoints within
     these functions.
 '''
+from rclpy.node import Node
 
 
 class RobotAPI:
     # The constructor below accepts parameters typically required to submit
     # http requests. Users should modify the constructor as per the
     # requirements of their robot's API
-    def __init__(self, prefix: str, user: str, password: str):
+    def __init__(self, prefix: str, user: str, password: str, node: Node):
         self.prefix = prefix
         self.user = user
         self.password = password
@@ -41,17 +42,23 @@ class RobotAPI:
 
     def check_connection(self):
         ''' Return True if connection to the robot API server is successful'''
-        # ------------------------ #
-        # IMPLEMENT YOUR CODE HERE #
-        # ------------------------ #
+        # there will be a service call to fleet manager to get robot's position
+        # custom service message in fleet_msg package called RequestRobotPosition
+
+        # 1. implement server in fleet manager
+
+        # 2. call the service server synchronously
         return True
 
     def position(self, robot_name: str):
         ''' Return [x, y, theta] expressed in the robot's coordinate frame or
             None if any errors are encountered'''
-        # ------------------------ #
-        # IMPLEMENT YOUR CODE HERE #
-        # ------------------------ #
+        # there will be a service call to fleet manager to get robot's position
+        # custom service message in fleet_msg package called RequestRobotPosition
+
+        # 1. implement server in fleet manager
+
+        # 2. call the service server synchronously
         return None
 
     def navigate(self, robot_name: str, pose, map_name: str):
@@ -59,9 +66,7 @@ class RobotAPI:
             and theta are in the robot's coordinate convention. This function
             should return True if the robot has accepted the request,
             else False'''
-        # ------------------------ #
-        # IMPLEMENT YOUR CODE HERE #
-        # ------------------------ #
+        # call the send_goal service server here
         return False
 
     def start_process(self, robot_name: str, process: str, map_name: str):
@@ -69,41 +74,32 @@ class RobotAPI:
             and the use case. For example, load/unload a cart for Deliverybot
             or begin cleaning a zone for a cleaning robot.
             Return True if the robot has accepted the request, else False'''
-        # ------------------------ #
-        # IMPLEMENT YOUR CODE HERE #
-        # ------------------------ #
+        # call the cancel_goal service server here
         return False
 
     def stop(self, robot_name: str):
         ''' Command the robot to stop.
             Return True if robot has successfully stopped. Else False'''
-        # ------------------------ #
-        # IMPLEMENT YOUR CODE HERE #
-        # ------------------------ #
+        # call the cancel_goal service server here
+
         return False
 
     def navigation_remaining_duration(self, robot_name: str):
         ''' Return the number of seconds remaining for the robot to reach its
             destination'''
-        # ------------------------ #
-        # IMPLEMENT YOUR CODE HERE #
-        # ------------------------ #
+        # not used at the moment
         return 0.0
 
     def navigation_completed(self, robot_name: str):
         ''' Return True if the robot has successfully completed its previous
             navigation request. Else False.'''
-        # ------------------------ #
-        # IMPLEMENT YOUR CODE HERE #
-        # ------------------------ #
+        # not used at the moment
         return False
 
     def process_completed(self, robot_name: str):
         ''' Return True if the robot has successfully completed its previous
             process request. Else False.'''
-        # ------------------------ #
-        # IMPLEMENT YOUR CODE HERE #
-        # ------------------------ #
+        # not used at the moment
         return False
 
     def battery_soc(self, robot_name: str):

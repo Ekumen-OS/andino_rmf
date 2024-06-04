@@ -1,0 +1,5 @@
+# request service message to remove all goals of robot_name
+string robot_name
+---
+# result whether goals removed successfully
+bool result

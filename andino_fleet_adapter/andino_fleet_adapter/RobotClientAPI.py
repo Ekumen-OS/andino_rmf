@@ -20,7 +20,9 @@
     will need to make http request calls to the appropriate endpoints within
     these functions.
 '''
+import rclpy
 from rclpy.node import Node
+from fleet_msg.srv import RobotControl, SendGoal, CancelGoal, RequestRobotPosition, RemoveAllGoals
 
 
 class RobotAPI:
@@ -32,6 +34,14 @@ class RobotAPI:
         self.user = user
         self.password = password
         self.connected = False
+        self.node = node
+        
+        # Initialize fleet manager client to use ROS API
+        self._add_goal_client = node.create_client(RobotControl, '/add_goal_server')
+        self._send_goal_client = node.create_client(SendGoal, '/send_goal_server')
+        self._cancel_goal_client = node.create_client(CancelGoal, '/cancel_goal_server')
+        self._remove_goal_client = node.create_client(RemoveAllGoals, '/remove_goal_server')
+
         # Test connectivity
         connected = self.check_connection()
         if connected:
@@ -40,14 +50,18 @@ class RobotAPI:
         else:
             print("Unable to query API server")
 
+        # Create empty service messages
+        self._add_goal_req = RobotControl.Request()
+        self._send_goal_req = SendGoal.Request()
+        self._cancel_goal_req = CancelGoal.Request()
+        self._remove_goal_req = RemoveAllGoals.Request()
+        self._future = None
+
     def check_connection(self):
         ''' Return True if connection to the robot API server is successful'''
-        # there will be a service call to fleet manager to get robot's position
-        # custom service message in fleet_msg package called RequestRobotPosition
-
-        # 1. implement server in fleet manager
-
-        # 2. call the service server synchronously
+        
+        while not (self._add_goal_client.wait_for_service(timeout_sec=1.0) and self._send_goal_client.wait_for_service(timeout_sec=1.0) and self._cancel_goal_client.wait_for_service(timeout_sec=1.0)):
+            self.node.get_logger().info('Fleet manager not available. Waiting again...')
         return True
 
     def position(self, robot_name: str):
@@ -66,7 +80,43 @@ class RobotAPI:
             and theta are in the robot's coordinate convention. This function
             should return True if the robot has accepted the request,
             else False'''
-        # call the send_goal service server here
+        # 1. cancel all goals
+        self._cancel_goal_req.robot_name = robot_name
+        self._future = self._cancel_goal_client.call_async(self._cancel_goal_req)
+
+        rclpy.spin_until_future_complete(self.node, self._future)
+        resp = self._future.result()
+        if resp.result == True:
+            # 2. remove goals in queue
+            self._remove_goal_req.robot_name = robot_name
+            self._future = self._remove_goal_client.call_async(self._remove_goal_req)
+
+            rclpy.spin_until_future_complete(self.node, self._future)
+            resp = self._future.result()
+            if resp.result == True:
+                # 3. add current pose to goal
+                self._add_goal_req.robot_name = robot_name
+                self._add_goal_req.final_pose = pose
+                self._future = self._add_goal_client.call_async(self._add_goal_req)
+
+                rclpy.spin_until_future_complete(self.node, self._future)
+                resp = self._future.result()
+
+                if resp.success == True:
+                    # 4. send goal
+                    self._send_goal_req.robot_name = robot_name
+                    self._future = self._send_goal_client.call_async(self._send_goal_req)
+
+                    rclpy.spin_until_future_complete(self.node, self._future)
+                    resp = self._future.result()
+
+                    if resp.result == True:
+                        return True
+                    return False
+
+                return False
+            return False
+
         return False
 
     def start_process(self, robot_name: str, process: str, map_name: str):
@@ -81,6 +131,14 @@ class RobotAPI:
         ''' Command the robot to stop.
             Return True if robot has successfully stopped. Else False'''
         # call the cancel_goal service server here
+        # 1. cancel all goals
+        self._cancel_goal_req.robot_name = robot_name
+        self._future = self._cancel_goal_client.call_async(self._cancel_goal_req)
+
+        rclpy.spin_until_future_complete(self.node, self._future)
+        resp = self._future.result()
+        if resp.result == True:
+            return True
 
         return False
 

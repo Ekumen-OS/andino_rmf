@@ -10,7 +10,7 @@ from rclpy.action import ActionClient
 from rclpy.task import Future
 
 
-from fleet_msg.srv import RobotControl, SendGoal, CancelGoal
+from fleet_msg.srv import RobotControl, SendGoal, CancelGoal, RemoveAllGoals
 from controller_action_msg.action import AndinoController
 from geometry_msgs.msg import Quaternion
 
@@ -31,6 +31,8 @@ class AndinoFleetManager(Node):
        self._add_goal_srv = self.create_service(RobotControl, 'add_goal_server', self._add_goal_callback, callback_group=self._group1)
        self._send_goal_srv = self.create_service(SendGoal, 'send_goal_server', self._send_goal_callback, callback_group=self._group1)
        self._cancel_goal_srv = self.create_service(CancelGoal, 'cancel_goal_server', self._cancel_goal_callback, callback_group=self._group1)
+       self._remove_goal_srv = self.create_service(RemoveAllGoals, 'remove_goal_server', self._remove_goal_callback, callback_group=self._group1)
+       
        # a robot_goals containing robot as key and goals as value
        self._robot_goals = dict() # self._robot_goals[robot] = [goal1, goal2, ...., goaln]
        # controller clients containing robot as key and client as value
@@ -95,6 +97,22 @@ class AndinoFleetManager(Node):
        self.cancel_goal(req.robot_name)
        resp.result = True
        return resp
+   
+   def _remove_goal_callback(self, req: SrvTypeRequest, resp: SrvTypeResponse):
+       # check if robot is online
+       if self._check_robot_online(req.robot_name) is False:
+           resp.result = False
+           self.get_logger().info(f'{req.robot_name} is not online!')
+           return resp 
+       # check if robot_name exists in collection
+       if req.robot_name not in self._robot_goals:
+           resp.result = False
+           self.get_logger().info(f'{req.robot_name} is not added to the server!')
+           return resp
+       else:
+           self._robot_goals[req.robot_name] = deque()
+           resp.result = True
+           return resp
        
    # Check if the controlelr server available given a robot name
    def _check_robot_online(self, robot_name: str):

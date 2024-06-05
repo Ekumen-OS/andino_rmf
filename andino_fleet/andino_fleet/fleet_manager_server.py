@@ -1,5 +1,6 @@
 import rclpy
 import threading
+import time
 
 
 from rclpy import executors
@@ -34,7 +35,7 @@ class AndinoFleetManager(Node):
        self._send_goal_srv = self.create_service(SendGoal, 'send_goal_server', self._send_goal_callback, callback_group=self._group1)
        self._cancel_goal_srv = self.create_service(CancelGoal, 'cancel_goal_server', self._cancel_goal_callback, callback_group=self._group1)
        self._remove_goal_srv = self.create_service(RemoveAllGoals, 'remove_goal_server', self._remove_goal_callback, callback_group=self._group1)
-       self._robot_pose_srv = self.create_service(RequestRobotPosition, 'robot_pose_server', self._robot_pose_callback, callback_group=self._group2)
+       self._robot_pose_srv = self.create_service(RequestRobotPosition, 'robot_pose_server', self._robot_pose_callback, callback_group=self._group1)
        
        # a robot_goals containing robot as key and goals as value
        self._robot_goals = dict() # self._robot_goals[robot] = [goal1, goal2, ...., goaln]
@@ -129,15 +130,13 @@ class AndinoFleetManager(Node):
    def _robot_pose_callback(self, req: SrvTypeRequest, resp: SrvTypeResponse):
        # check if robot is online
        if self._check_robot_online(req.robot_name) is False:
-           resp.current_position = None
+           resp.current_position = [0.0 ,0.0 ,0.0]
            self.get_logger().info(f'{req.robot_name} is not online!')
            return resp
        # check if robot_name exists in collection
        if req.robot_name not in self._pose_subs:
            # create new robot pose subscription
            self._create_pose_subscription(req.robot_name)
-           self.get_logger().info(f'Created new pose subscription for {req.robot_name}')
-           
        # get current robot pose
        with self._lock:
             resp.current_position = self._current_poses[req.robot_name]
@@ -164,9 +163,10 @@ class AndinoFleetManager(Node):
    def _create_pose_subscription(self, robot_name: str):
        topic_name = '/'+robot_name+'/current_pose'
        self._pose_topics[robot_name] = topic_name
-       self._current_poses[robot_name] = None
+       self._current_poses[robot_name] = [0.0 ,0.0 ,0.0]
        # create subscription client
-       sub_client = self.create_subscription(RobotPose, topic_name, self._pose_callback, 10)
+       sub_client = self.create_subscription(RobotPose, topic_name, self._pose_callback, 10, callback_group=self._group2)
+       time.sleep(0.2)
        self._pose_subs[robot_name] = sub_client
        self.get_logger().info(f'Subscription for {topic_name} created')
       

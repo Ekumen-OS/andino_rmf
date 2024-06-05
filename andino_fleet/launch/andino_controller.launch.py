@@ -12,9 +12,11 @@ def generate_launch_description():
     # Declare the launch configuration
     cmd_vel = LaunchConfiguration('velocity_topic')
     odom = LaunchConfiguration('odom_topic')
+    pose = LaunchConfiguration('pose_topic')
 
     cmdvel_arg = DeclareLaunchArgument('velocity_topic', default_value='/cmd_vel')
     odom_arg = DeclareLaunchArgument('odom_topic', default_value='/odom')
+    pose_arg = DeclareLaunchArgument('pose_topic', default_value='/current_pose')
 
     config_file = 'controller.yaml'
     andino_server_node = Node(
@@ -25,11 +27,13 @@ def generate_launch_description():
         remappings=[
             ('/cmd_vel', cmd_vel),
             ('/odom', odom),
+            ('/current_pose', pose)
         ]
     )
 
     return LaunchDescription([
         cmdvel_arg,
         odom_arg,
+        pose_arg,
         andino_server_node,        
     ])

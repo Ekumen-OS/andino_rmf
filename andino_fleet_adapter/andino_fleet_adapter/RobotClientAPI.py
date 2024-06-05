@@ -76,6 +76,8 @@ class RobotAPI:
         rclpy.spin_until_future_complete(self.node, self._future)
         resp = self._future.result()
 
+        if resp.current_position == [0.0, 0.0, 0.0]:
+            return None
         return resp.current_position
 
     def navigate(self, robot_name: str, pose, map_name: str):

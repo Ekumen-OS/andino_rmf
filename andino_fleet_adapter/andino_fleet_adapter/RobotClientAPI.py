@@ -41,6 +41,7 @@ class RobotAPI:
         self._send_goal_client = node.create_client(SendGoal, '/send_goal_server')
         self._cancel_goal_client = node.create_client(CancelGoal, '/cancel_goal_server')
         self._remove_goal_client = node.create_client(RemoveAllGoals, '/remove_goal_server')
+        self._robot_pose_client = node.create_client(RequestRobotPosition, '/robot_pose_server')
 
         # Test connectivity
         connected = self.check_connection()
@@ -55,6 +56,7 @@ class RobotAPI:
         self._send_goal_req = SendGoal.Request()
         self._cancel_goal_req = CancelGoal.Request()
         self._remove_goal_req = RemoveAllGoals.Request()
+        self._robot_pose_req = RequestRobotPosition.Request()
         self._future = None
 
     def check_connection(self):
@@ -68,12 +70,13 @@ class RobotAPI:
         ''' Return [x, y, theta] expressed in the robot's coordinate frame or
             None if any errors are encountered'''
         # there will be a service call to fleet manager to get robot's position
-        # custom service message in fleet_msg package called RequestRobotPosition
+        self._robot_pose_req.robot_name = robot_name
+        self._future = self._robot_pose_client.call_async(self._robot_pose_req)
 
-        # 1. implement server in fleet manager
+        rclpy.spin_until_future_complete(self.node, self._future)
+        resp = self._future.result()
 
-        # 2. call the service server synchronously
-        return None
+        return resp.current_position
 
     def navigate(self, robot_name: str, pose, map_name: str):
         ''' Request the robot to navigate to pose:[x,y,theta] where x, y and

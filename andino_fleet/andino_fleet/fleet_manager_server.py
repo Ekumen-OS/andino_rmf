@@ -1,4 +1,5 @@
 import rclpy
+import threading
 
 
 from rclpy import executors
@@ -10,8 +11,9 @@ from rclpy.action import ActionClient
 from rclpy.task import Future
 
 
-from fleet_msg.srv import RobotControl, SendGoal, CancelGoal, RemoveAllGoals
+from fleet_msg.srv import RobotControl, SendGoal, CancelGoal, RemoveAllGoals, RequestRobotPosition
 from controller_action_msg.action import AndinoController
+from controller_action_msg.msg import RobotPose
 from geometry_msgs.msg import Quaternion
 
 
@@ -32,6 +34,7 @@ class AndinoFleetManager(Node):
        self._send_goal_srv = self.create_service(SendGoal, 'send_goal_server', self._send_goal_callback, callback_group=self._group1)
        self._cancel_goal_srv = self.create_service(CancelGoal, 'cancel_goal_server', self._cancel_goal_callback, callback_group=self._group1)
        self._remove_goal_srv = self.create_service(RemoveAllGoals, 'remove_goal_server', self._remove_goal_callback, callback_group=self._group1)
+       self._robot_pose_srv = self.create_service(RequestRobotPosition, 'robot_pose_server', self._robot_pose_callback, callback_group=self._group2)
        
        # a robot_goals containing robot as key and goals as value
        self._robot_goals = dict() # self._robot_goals[robot] = [goal1, goal2, ...., goaln]
@@ -39,7 +42,14 @@ class AndinoFleetManager(Node):
        self._controller_clients = dict() # self._controller_clients[robot] = [client1, client2, ..., clientn]
        # goal handles
        self._goal_handles = dict()
+       # pose subscriptions
+       self._pose_subs = dict() # self._pose_subs[robot1] = sub1
+       # pose topics
+       self._pose_topics = dict() # self._pose_topics[robot1] = topic1
+       # current pose
+       self._current_poses = dict()
        # logging
+       self._lock = threading.Lock()
        self.get_logger().info('Andino Fleet Manager Started')
   
    # callback process for adding goals to manager
@@ -98,6 +108,7 @@ class AndinoFleetManager(Node):
        resp.result = True
        return resp
    
+   # callback process for remove goals
    def _remove_goal_callback(self, req: SrvTypeRequest, resp: SrvTypeResponse):
        # check if robot is online
        if self._check_robot_online(req.robot_name) is False:
@@ -113,6 +124,24 @@ class AndinoFleetManager(Node):
            self._robot_goals[req.robot_name] = deque()
            resp.result = True
            return resp
+    
+   # callback process for requesting robot pose
+   def _robot_pose_callback(self, req: SrvTypeRequest, resp: SrvTypeResponse):
+       # check if robot is online
+       if self._check_robot_online(req.robot_name) is False:
+           resp.current_position = None
+           self.get_logger().info(f'{req.robot_name} is not online!')
+           return resp
+       # check if robot_name exists in collection
+       if req.robot_name not in self._pose_subs:
+           # create new robot pose subscription
+           self._create_pose_subscription(req.robot_name)
+           self.get_logger().info(f'Created new pose subscription for {req.robot_name}')
+           
+       # get current robot pose
+       with self._lock:
+            resp.current_position = self._current_poses[req.robot_name]
+       return resp
        
    # Check if the controlelr server available given a robot name
    def _check_robot_online(self, robot_name: str):
@@ -130,6 +159,16 @@ class AndinoFleetManager(Node):
        controller_client = ActionClient(self, AndinoController, action_name, callback_group=self._group1)
        self._controller_clients[robot_name] = controller_client
        self.get_logger().info(f'Client for {action_name} created')
+
+   # Create robot pose subscription given a robot name
+   def _create_pose_subscription(self, robot_name: str):
+       topic_name = '/'+robot_name+'/current_pose'
+       self._pose_topics[robot_name] = topic_name
+       self._current_poses[robot_name] = None
+       # create subscription client
+       sub_client = self.create_subscription(RobotPose, topic_name, self._pose_callback, 10)
+       self._pose_subs[robot_name] = sub_client
+       self.get_logger().info(f'Subscription for {topic_name} created')
       
    # Send action goal given a robot name
    def send_goal(self, robot_name: str):
@@ -192,6 +231,14 @@ class AndinoFleetManager(Node):
    def _cancel_response_callback(self, future: Future):
        cancel_response = future.result()
        self.get_logger().info('Goal successfully canceled :)')
+
+   def _pose_callback(self, msg):
+       with self._lock:
+            for robot, topic in self._pose_topics.items():
+                if msg.topic_name == topic:
+                    self._current_poses[robot] = msg.current_pose
+       
+               
 
 def main(args=None):
    rclpy.init(args=args)

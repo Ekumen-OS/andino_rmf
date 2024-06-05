@@ -78,3 +78,17 @@ Once a goal is being executed, users can cancel the goal given a robot name by,
 ```
 ros2 service call /cancel_goal_server fleet_msg/srv/CancelGoal "{robot_name: 'andino2'}"
 ```
+
+### Clear all goals
+Users can remove all goals in fleet manager that belong to a specified robot,
+
+```
+ros2 service call /remove_goal_server fleet_msg/srv/RemoveAllGoals "{robot_name: 'andino2'}"
+```
+
+### Request for current position
+Users can retrieve a robot position defined by [x, y, yaw] by specifying a robot name,
+
+```
+ros2 service call /robot_pose_server fleet_msg/srv/RequestRobotPosition "{robot_name: 'andino2'}"
+```

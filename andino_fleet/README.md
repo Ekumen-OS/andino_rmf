@@ -8,7 +8,7 @@ The goal of a controller server is to move an Andino robot from position A to B 
 
 ### Implementation
 The controller is implemented as a ROS2 node that creates an action server for a specific andino bot. This action server takes clients requests that specify a Pose as it's goal, send the position information as the action feedback and returns True or False whether the bot arrived at the goal or not due to it's movement being completed or a goal being canceled.
-<img src="https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/docs/controller_server_diagram.png" alt="controller diagram" title="controller diagram" width="500">
+<img src="https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/docs/controller_server_diagram.png" alt="controller diagram" title="controller diagram" width="650">
 
 In order for a controller to function properly, the following functionalities are implemented.
 
@@ -31,7 +31,7 @@ The manager is implemented as a ROS2 node that contains multiple services to con
 
 Each service requires a robot name in order to manage individual robots.
 
-<img src="https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/docs/fleet_manager_diagram.png" alt="fleet manager diagram" title="fleet manager diagram" width="500">
+<img src="https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/docs/fleet_manager_diagram.png" alt="fleet manager diagram" title="fleet manager diagram" width="700">
 
 The fleet manager node have the following features implemented.
 

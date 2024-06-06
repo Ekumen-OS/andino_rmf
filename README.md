@@ -86,8 +86,11 @@ Users can remove all goals in fleet manager that belong to a specified robot,
 ros2 service call /remove_goal_server fleet_msg/srv/RemoveAllGoals "{robot_name: 'andino2'}"
 ```
 
-### Request for current position
-Users can retrieve a robot position defined by [x, y, yaw] by specifying a robot name,
+### Request for current states
+Users can retrieve a robot states as the following
+- robot position defined by [x, y, yaw]
+- robot connectivity
+- navigation status
 
 ```
 ros2 service call /robot_pose_server fleet_msg/srv/RequestRobotPosition "{robot_name: 'andino2'}"

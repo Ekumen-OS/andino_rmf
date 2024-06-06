@@ -36,5 +36,5 @@ Each service requires a robot name in order to manage individual robots.
 The fleet manager node have the following features implemented.
 
 - Be able to implement relevant services to manage the andino fleet
-- Use [custom service messages]([/home/ubuntu/andino_fleet_open_rmf/src/andino_fleet_open_rmf/fleet_msg/srv](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/fleet_msg/srv)) for service interface
+- Use [custom service messages](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/fleet_msg/srv) for service interface
 - Be able to get states of each robot

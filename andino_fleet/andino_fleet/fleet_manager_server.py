@@ -44,11 +44,13 @@ class AndinoFleetManager(Node):
        # goal handles
        self._goal_handles = dict()
        # pose subscriptions
-       self._pose_subs = dict() # self._pose_subs[robot1] = sub1
+       self._pose_subs = dict() # self._pose_subs[robot1] -> sub1
        # pose topics
-       self._pose_topics = dict() # self._pose_topics[robot1] = topic1
+       self._pose_topics = dict() # self._pose_topics[robot1] -> topic1
        # current pose
-       self._current_poses = dict()
+       self._current_poses = dict() # self._current_poses[robot1] -> [x1, y1, yaw1]
+       # navigation result
+       self._navigation_results = dict() # self._navigation_results[robot1] -> false
        # logging
        self._lock = threading.Lock()
        self.get_logger().info('Andino Fleet Manager Started')
@@ -69,7 +71,8 @@ class AndinoFleetManager(Node):
            self.get_logger().info(f'Created new client for {req.robot_name}')
        else:
            self._robot_goals[req.robot_name].append(req.final_pose)
-
+       # set current navigation result to false
+       self._navigation_results[req.robot_name] = False
        resp.success = True
        self.get_logger().info(f'Added a final pose [{req.final_pose[0]}, {req.final_pose[1]}, {req.final_pose[2]}] for {req.robot_name}')
        return resp
@@ -86,7 +89,7 @@ class AndinoFleetManager(Node):
            resp.result = False
            self.get_logger().info(f'{req.robot_name} does not exist in queue. Add this robot to the queue before sending the goal')
            return resp
-       
+       # send a goal to server
        self.send_goal(req.robot_name)
        self.get_logger().info(f'Sent a final pose for {req.robot_name}')
        resp.result = True
@@ -131,6 +134,8 @@ class AndinoFleetManager(Node):
        # check if robot is online
        if self._check_robot_online(req.robot_name) is False:
            resp.current_position = [0.0 ,0.0 ,0.0]
+           resp.is_robot_connected = False
+           resp.is_navigation_completed = False
            self.get_logger().info(f'{req.robot_name} is not online!')
            return resp
        # check if robot_name exists in collection
@@ -140,6 +145,8 @@ class AndinoFleetManager(Node):
        # get current robot pose
        with self._lock:
             resp.current_position = self._current_poses[req.robot_name]
+            resp.is_robot_connected = True
+            resp.is_navigation_completed = self._navigation_results[req.robot_name]
        return resp
        
    # Check if the controlelr server available given a robot name
@@ -178,6 +185,7 @@ class AndinoFleetManager(Node):
        if not self._robot_goals[robot_name]:
            self.get_logger().info(f'No goals available for {robot_name}.')
            return
+       # get a goal value
        goal = self._robot_goals[robot_name][0]
        self.get_logger().debug(f'Goal to send: [{goal[0]}, {goal[1]}, {goal[2]}]\n')
        self.get_logger().debug(f'Queue length: {len(self._robot_goals[robot_name])}')
@@ -207,7 +215,7 @@ class AndinoFleetManager(Node):
    # Cancel goal given a robot name
    def cancel_goal(self, robot_name: str):
        future = self._goal_handles[robot_name].cancel_goal_async()
-       future.add_done_callback(self._cancel_response_callback)
+       future.add_done_callback(lambda future: self._cancel_response_callback(robot_name, future))
 
    def _goal_response_callback(self, robot_name: str, future: Future):
        goal_handle = future.result()
@@ -218,18 +226,21 @@ class AndinoFleetManager(Node):
        self._goal_handles[robot_name] = goal_handle
        self.get_logger().info('Goal accepted :)')
        self._get_result_future = goal_handle.get_result_async()
-       self._get_result_future.add_done_callback(self._get_result_callback)
+       self._get_result_future.add_done_callback(lambda future: self._get_result_callback(robot_name, future))
 
-   def _get_result_callback(self, future: Future):
+   def _get_result_callback(self, robot_name: str, future: Future):
        result = future.result().result
+       # navigation completed
+       self._navigation_results[robot_name] = True
        self.get_logger().info('Result: {0}'.format(result.success))
 
    def _feedback_callback(self, feedback_msg):
        feedback = feedback_msg.feedback
        self.get_logger().info('Distance Remaining: {0}'.format(round(feedback.distance_remaining,3)))
 
-   def _cancel_response_callback(self, future: Future):
+   def _cancel_response_callback(self, robot_name: str, future: Future):
        cancel_response = future.result()
+       self._navigation_results[robot_name] = False
        self.get_logger().info('Goal successfully canceled :)')
 
    def _pose_callback(self, msg):

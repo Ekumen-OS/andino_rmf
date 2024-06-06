@@ -41,7 +41,7 @@ class RobotAPI:
         self._send_goal_client = node.create_client(SendGoal, '/send_goal_server')
         self._cancel_goal_client = node.create_client(CancelGoal, '/cancel_goal_server')
         self._remove_goal_client = node.create_client(RemoveAllGoals, '/remove_goal_server')
-        self._robot_pose_client = node.create_client(RequestRobotPosition, '/robot_pose_server')
+        self._robot_state_client = node.create_client(RequestRobotPosition, '/robot_pose_server')
 
         # Test connectivity
         connected = self.check_connection()
@@ -56,7 +56,7 @@ class RobotAPI:
         self._send_goal_req = SendGoal.Request()
         self._cancel_goal_req = CancelGoal.Request()
         self._remove_goal_req = RemoveAllGoals.Request()
-        self._robot_pose_req = RequestRobotPosition.Request()
+        self._robot_state_req = RequestRobotPosition.Request()
         self._future = None
 
     def check_connection(self):
@@ -69,14 +69,14 @@ class RobotAPI:
     def position(self, robot_name: str):
         ''' Return [x, y, theta] expressed in the robot's coordinate frame or
             None if any errors are encountered'''
-        # there will be a service call to fleet manager to get robot's position
-        self._robot_pose_req.robot_name = robot_name
-        self._future = self._robot_pose_client.call_async(self._robot_pose_req)
+        self._robot_state_req.robot_name = robot_name
+        self._future = self._robot_state_client.call_async(self._robot_state_req)
 
         rclpy.spin_until_future_complete(self.node, self._future)
         resp = self._future.result()
 
-        if resp.current_position == [0.0, 0.0, 0.0]:
+        if resp.is_robot_connected is False:
+            self.node.get_logger().warning(f'{robot_name} is not online!')
             return None
         return resp.current_position
 
@@ -135,8 +135,6 @@ class RobotAPI:
     def stop(self, robot_name: str):
         ''' Command the robot to stop.
             Return True if robot has successfully stopped. Else False'''
-        # call the cancel_goal service server here
-        # 1. cancel all goals
         self._cancel_goal_req.robot_name = robot_name
         self._future = self._cancel_goal_client.call_async(self._cancel_goal_req)
 
@@ -156,8 +154,17 @@ class RobotAPI:
     def navigation_completed(self, robot_name: str):
         ''' Return True if the robot has successfully completed its previous
             navigation request. Else False.'''
-        # not used at the moment
-        return False
+        self._robot_state_req.robot_name = robot_name
+        self._future = self._robot_state_client.call_async(self._robot_state_req)
+
+        rclpy.spin_until_future_complete(self.node, self._future)
+        resp = self._future.result()
+
+        if resp.is_robot_connected is False:
+            self.node.get_logger().warning(f'{robot_name} is not online!')
+            return False
+        
+        return resp.is_navigation_completed
 
     def process_completed(self, robot_name: str):
         ''' Return True if the robot has successfully completed its previous
@@ -168,7 +175,5 @@ class RobotAPI:
     def battery_soc(self, robot_name: str):
         ''' Return the state of charge of the robot as a value between 0.0
             and 1.0. Else return None if any errors are encountered'''
-        # ------------------------ #
-        # IMPLEMENT YOUR CODE HERE #
-        # ------------------------ #
-        return None
+        battery_status = 1.0
+        return battery_status

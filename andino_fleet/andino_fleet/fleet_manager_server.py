@@ -237,9 +237,6 @@ class AndinoFleetManager(Node):
             for robot, topic in self._pose_topics.items():
                 if msg.topic_name == topic:
                     self._current_poses[robot] = msg.current_pose
-       
-               
-
 def main(args=None):
    rclpy.init(args=args)
 

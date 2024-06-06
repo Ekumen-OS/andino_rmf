@@ -31,7 +31,7 @@ The manager is implemented as a ROS2 node that contains multiple services to con
 
 Each service requires a robot name in order to manage individual robots.
 
-<img src="https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/docs/fleet_manager_diagram.png" alt="fleet manager diagram" title="fleet manager diagram" width="700">
+<img src="https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/docs/fleet_manager_diagram.png" alt="fleet manager diagram" title="fleet manager diagram" width="750">
 
 The fleet manager node have the following features implemented.
 

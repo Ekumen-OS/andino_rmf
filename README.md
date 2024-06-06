@@ -1,7 +1,7 @@
 # Andino Fleet with OpenRMF
 This package intends to utilize OpenRMF to send a high-level task planning to Andino robot fleet. To achieve this goal, three main developments are included as the following.
-  - [Controller server](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/andino_fleet/README.md#controller-server) for an Andino robot
-  - [Fleet manager](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/andino_fleet/README.md#fleet-manager) to manage multiple robots
+  - [Controller server](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/main/andino_fleet/README.md#controller-server) for an Andino robot
+  - [Fleet manager](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/main/andino_fleet/README.md#fleet-manager) to manage multiple robots
   - Fleet adapter to bridge a fleet manager with OpenRMF API
 
 ## Project dependencies
@@ -46,9 +46,9 @@ To launch multiple robots with corresponding controller servers,
 ros2 launch andino_fleet spawn_multiple_robot.launch.py
 ```
 
-<img src="https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/readme-writing/docs/Screenshot%20from%202024-05-21%2010-18-39.png" alt="Multi-robot simulation" title="Multi-robot simulation" width="300"/>
+<img src="https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/main/docs/Screenshot%20from%202024-05-21%2010-18-39.png" alt="Multi-robot simulation" title="Multi-robot simulation" width="300"/>
 
-*<b>Note: </b> To add/remove robot(s), edit <b>spawn_robots.yaml</b> under <b>[andino_fleet/config](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/readme-writing/andino_fleet/config)</b> folder. There are two robots by default.*
+*<b>Note: </b> To add/remove robot(s), edit <b>spawn_robots.yaml</b> under <b>[andino_fleet/config](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/andino_fleet/config)</b> folder. There are two robots by default.*
 
 To run the implemented fleet manager,
 

@@ -63,7 +63,7 @@ def generate_launch_description():
             'ros2 launch andino_gz andino_gz.launch.py ',
             'robots:=',
             config_txt,
-            ' rviz:=', 'false'
+            ' rviz:=', 'true'
         ]],
         shell=True
     )

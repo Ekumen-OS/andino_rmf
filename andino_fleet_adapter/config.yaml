@@ -2,7 +2,7 @@
 # RMF Fleet parameters
 
 rmf_fleet:
-  name: "DeliveryBot"
+  name: "AndinoBot"
   fleet_manager:
     prefix: "http://127.0.0.1:8000"
     user: "some_user"

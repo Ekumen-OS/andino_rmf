@@ -49,8 +49,13 @@ class AndinoFleetManager(Node):
        self._pose_topics = dict() # self._pose_topics[robot1] -> topic1
        # current pose
        self._current_poses = dict() # self._current_poses[robot1] -> [x1, y1, yaw1]
+       # current velocity
+       self._current_velocities = dict()
+       # distance remaining
+       self._distance_remainings = dict()
        # navigation result
        self._navigation_results = dict() # self._navigation_results[robot1] -> false
+       
        # logging
        self._lock = threading.Lock()
        self.get_logger().info('Andino Fleet Manager Started')
@@ -134,17 +139,23 @@ class AndinoFleetManager(Node):
        # check if robot is online
        if self._check_robot_online(req.robot_name) is False:
            resp.current_position = [0.0 ,0.0 ,0.0]
+           resp.current_velocity = 0.0
+           resp.distance_remaining = 0.0
            resp.is_robot_connected = False
            resp.is_navigation_completed = False
            self.get_logger().info(f'{req.robot_name} is not online!')
            return resp
        # check if robot_name exists in collection
-       if req.robot_name not in self._pose_subs:
-           # create new robot pose subscription
+       if (req.robot_name not in self._pose_subs) or (req.robot_name not in self._controller_clients):
+           # create new robot pose subscription and initialize feedback variables
            self._create_pose_subscription(req.robot_name)
+           self._current_velocities[req.robot_name] = 0.0
+           self._distance_remainings[req.robot_name] = 0.0
        # get current robot pose
        with self._lock:
             resp.current_position = self._current_poses[req.robot_name]
+            resp.current_velocity = self._current_velocities[req.robot_name]
+            resp.distance_remaining = self._distance_remainings[req.robot_name]
             resp.is_robot_connected = True
             resp.is_navigation_completed = self._navigation_results[req.robot_name]
        return resp
@@ -164,6 +175,7 @@ class AndinoFleetManager(Node):
        # create controller client
        controller_client = ActionClient(self, AndinoController, action_name, callback_group=self._group1)
        self._controller_clients[robot_name] = controller_client
+
        self.get_logger().info(f'Client for {action_name} created')
 
    # Create robot pose subscription given a robot name
@@ -206,7 +218,7 @@ class AndinoFleetManager(Node):
            self.get_logger().info(f'{robot_name} controller server is not ready!')
            return
        
-       self._send_goal_future = self._controller_clients[robot_name].send_goal_async(goal_msg, feedback_callback=self._feedback_callback)
+       self._send_goal_future = self._controller_clients[robot_name].send_goal_async(goal_msg, feedback_callback= lambda feedback_msg: self._feedback_callback(robot_name, feedback_msg))
        self._send_goal_future.add_done_callback(lambda future: self._goal_response_callback(robot_name, future))
        # pop the goal
        self._robot_goals[robot_name].popleft()
@@ -234,8 +246,14 @@ class AndinoFleetManager(Node):
        self._navigation_results[robot_name] = True
        self.get_logger().info('Result: {0}'.format(result.success))
 
-   def _feedback_callback(self, feedback_msg):
-       feedback = feedback_msg.feedback
+   def _feedback_callback(self, robot_name, feedback_msg):
+       with self._lock:
+            feedback = feedback_msg.feedback
+
+            # get feedback and save it in class variables
+            self._current_velocities[robot_name] = feedback.current_vel.linear.x
+            self._distance_remainings[robot_name] = feedback.distance_remaining
+
        self.get_logger().info('Distance Remaining: {0}'.format(round(feedback.distance_remaining,3)))
 
    def _cancel_response_callback(self, robot_name: str, future: Future):

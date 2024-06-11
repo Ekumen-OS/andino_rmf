@@ -148,9 +148,21 @@ class RobotAPI:
     def navigation_remaining_duration(self, robot_name: str):
         ''' Return the number of seconds remaining for the robot to reach its
             destination'''
-        # not used at the moment
-        return 0.0
+        self._robot_state_req.robot_name = robot_name
+        self._future = self._robot_state_client.call_async(self._robot_state_req)
 
+        rclpy.spin_until_future_complete(self.node, self._future)
+        resp = self._future.result()
+
+        if resp.is_robot_connected is False:
+            self.node.get_logger().warning(f'{robot_name} is not online!')
+            return None
+        
+        # calculate duration(s) := t = distance_remaining(m) / current_velocity(m/s)
+        duration = resp.distance_remaining / resp.current_velocity
+
+        return duration
+    
     def navigation_completed(self, robot_name: str):
         ''' Return True if the robot has successfully completed its previous
             navigation request. Else False.'''

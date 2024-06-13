@@ -1,2 +1,4 @@
 .pyc
 .vscode
+andino_fleet/test/__pycache__/
+andino_fleet_adapter/test/__pycache__/

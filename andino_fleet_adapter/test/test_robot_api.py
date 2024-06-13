@@ -1,3 +1,21 @@
+'''
+This test script is intended to test all functions available in RobotClientAPI module.
+
+To run the test,
+
+1. launch the simulation with controller servers.
+
+    ros2 launch andino_fleet spawn_multiple_robot.launch.py
+
+2. run the fleet manager.
+
+    ros2 run andino_fleet fleet_manager
+    
+3. run test using the following command,
+
+    pytest-3 ~/ros2_ws/src/andino_fleet_open_rmf/andino_fleet_adapter/test/test_robot_api.py
+'''
+
 import pytest
 import rclpy
 from rclpy.node import Node

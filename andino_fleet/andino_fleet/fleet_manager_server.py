@@ -72,12 +72,11 @@ class AndinoFleetManager(Node):
            self._robot_goals[req.robot_name] = deque([req.final_pose])
            self.get_logger().debug(f'{req.robot_name} goal: {self._robot_goals[req.robot_name]}')
            # create new controller client
-           self._create_controller_client(req.robot_name)
+           self.create_client_and_subscription(req.robot_name)
            self.get_logger().info(f'Created new client for {req.robot_name}')
        else:
            self._robot_goals[req.robot_name].append(req.final_pose)
-       # set current navigation result to false
-       self._navigation_results[req.robot_name] = False
+       
        resp.success = True
        self.get_logger().info(f'Added a final pose [{req.final_pose[0]}, {req.final_pose[1]}, {req.final_pose[2]}] for {req.robot_name}')
        return resp
@@ -109,8 +108,8 @@ class AndinoFleetManager(Node):
            return resp
        # check if robot_name exists in collection
        if req.robot_name not in self._robot_goals:
-           resp.result = False
-           self.get_logger().info(f'Cannot cancel goal. {req.robot_name} does not exist in queue')
+           resp.result = True
+           self.get_logger().info(f'Cancel goal aborted. {req.robot_name} does not exist in queue')
            return resp
        
        self.cancel_goal(req.robot_name)
@@ -126,8 +125,8 @@ class AndinoFleetManager(Node):
            return resp 
        # check if robot_name exists in collection
        if req.robot_name not in self._robot_goals:
-           resp.result = False
-           self.get_logger().info(f'{req.robot_name} is not added to the server!')
+           resp.result = True
+           self.get_logger().info(f'Remove goals aborted. {req.robot_name} is already empty.')
            return resp
        else:
            self._robot_goals[req.robot_name] = deque()
@@ -148,7 +147,7 @@ class AndinoFleetManager(Node):
        # check if robot_name exists in collection
        if (req.robot_name not in self._pose_subs) or (req.robot_name not in self._controller_clients):
            # create new robot pose subscription and initialize feedback variables
-           self._create_pose_subscription(req.robot_name)
+           self.create_client_and_subscription(req.robot_name)
            self._current_velocities[req.robot_name] = 0.0
            self._distance_remainings[req.robot_name] = 0.0
        # get current robot pose
@@ -188,6 +187,14 @@ class AndinoFleetManager(Node):
        time.sleep(0.2)
        self._pose_subs[robot_name] = sub_client
        self.get_logger().info(f'Subscription for {topic_name} created')
+   
+   # Wrapper method to create controller client and pose subscriber
+   def create_client_and_subscription(self, robot_name: str):
+       self._create_controller_client(robot_name=robot_name)
+       self._create_pose_subscription(robot_name=robot_name)
+
+       # initialize navigation result
+       self._navigation_results[robot_name] = False
       
    # Send action goal given a robot name
    def send_goal(self, robot_name: str):
@@ -243,7 +250,7 @@ class AndinoFleetManager(Node):
    def _get_result_callback(self, robot_name: str, future: Future):
        result = future.result().result
        # navigation completed
-       self._navigation_results[robot_name] = True
+       self._navigation_results[robot_name] = result.success
        self.get_logger().info('Result: {0}'.format(result.success))
 
    def _feedback_callback(self, robot_name, feedback_msg):

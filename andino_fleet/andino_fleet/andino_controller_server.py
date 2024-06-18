@@ -14,6 +14,7 @@ from typing import List
 import rclpy
 
 from controller_action_msg.action import AndinoController
+from controller_action_msg.msg import RobotPose
 
 class AndinoControllerServer(Node):
     
@@ -33,6 +34,8 @@ class AndinoControllerServer(Node):
         self._odom_sub = self.create_subscription(Odometry,'/odom',self._odom_callback,50)
         # velocity topic
         self._vel_pub = self.create_publisher(Twist,'/cmd_vel',10)
+        # current pose topic
+        self._pose_pub = self.create_publisher(RobotPose, '/current_pose', 10)
         self.get_logger().info('Andino Controller Server Started')
     # This callback is called by the action server to execute tasks for a specific goal handle
     def _execute_callback(self,goal_handle: ServerGoalHandle):
@@ -125,7 +128,6 @@ class AndinoControllerServer(Node):
             
         self.stop_robot()
             
-
     def _odom_callback(self,msg: Odometry):
         self._curr_x = msg.pose.pose.position.x
         self._curr_y = msg.pose.pose.position.y
@@ -133,13 +135,15 @@ class AndinoControllerServer(Node):
         quat_tf = [msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w]
         (_, _, self._yaw, self._quat_tf) = self._quaternion_to_euler(quat_tf)
 
+        # publish current pose
+        self.publish_pose()
         self.get_logger().debug(f'[Odom] Current X: {self._curr_x} m | Current Y: {self._curr_y} m | Yaw:{self._yaw} rad')
 
-    def _quaternion_to_euler(self, quaternion: List):
+    def _quaternion_to_euler(self, quaternion: List) -> tuple:
         (roll,pitch,yaw) = euler_from_quaternion(quaternion)
         return (roll,pitch,yaw,quaternion)
     
-    def _normalize_angle(self, theta):
+    def _normalize_angle(self, theta) -> float:
         '''
         Normalize theta(radian) to be between (-pi,pi]
         '''
@@ -148,23 +152,32 @@ class AndinoControllerServer(Node):
         while norm_theta >= math.pi: norm_theta -= 2*math.pi
         return norm_theta
 
-    def _update_rho(self, x: float, y: float):
+    def _update_rho(self, x: float, y: float) -> float:
         rho = math.sqrt(x**2 + y**2)
         return rho
     
-    def _update_alpha(self, x: float, y: float, theta: float):
+    def _update_alpha(self, x: float, y: float, theta: float) -> float:
         alpha = (-1)*theta + math.atan2(y,x)
         return self._normalize_angle(alpha)
     
-    def _update_beta(self, alpha:float, theta: float):
+    def _update_beta(self, alpha:float, theta: float) -> float:
         beta = (-1)*theta - alpha
         return self._normalize_angle(beta)
     
-    def _update_states(self, x_goal : float, y_goal: float):
+    def _update_states(self, x_goal : float, y_goal: float) -> tuple:
         delta_x = x_goal - self._curr_x
         delta_y = y_goal - self._curr_y
         theta = self._yaw
         return (delta_x,delta_y,theta)
+    
+    def _update_topic_names(self) -> str:
+        topic_names_and_types = self.get_topic_names_and_types()
+        namespace = self.get_namespace()
+        topic = namespace+'/current_pose'
+        for name, type in topic_names_and_types:
+            if topic in name:
+                return name
+        return ''
     
     def stop_robot(self):
         vel_msg = Twist()
@@ -179,6 +192,13 @@ class AndinoControllerServer(Node):
         vel_msg.angular.z = angular_twist
 
         self._vel_pub.publish(vel_msg)
+
+    def publish_pose(self):
+        pose_msg = RobotPose()
+        pose_msg.topic_name = self._update_topic_names()
+        pose_msg.current_pose = [self._curr_x, self._curr_y, self._yaw]
+
+        self._pose_pub.publish(pose_msg)
 
 def main(args=None):
     rclpy.init(args=args)

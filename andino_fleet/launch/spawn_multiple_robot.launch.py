@@ -18,6 +18,7 @@ def launch_servers(config: dict):
         topic_remappings = {
             'velocity_topic': '/'+str(k)+'/cmd_vel',
             'odom_topic': '/'+str(k)+'/odom',
+            'pose_topic': '/'+str(k)+'/current_pose',
         }
         
         # launch description for 1 action server

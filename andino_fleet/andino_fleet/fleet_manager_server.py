@@ -50,9 +50,9 @@ class AndinoFleetManager(Node):
        # current pose
        self._current_poses = dict() # self._current_poses[robot1] -> [x1, y1, yaw1]
        # current velocity
-       self._current_velocities = dict()
+       self._current_velocities = dict() # self._current_velocities[robot1] -> curr_vel1
        # distance remaining
-       self._distance_remainings = dict()
+       self._distance_remainings = dict() # self._distance_remainings[robot1] -> curr_dist1
        # navigation result
        self._navigation_results = dict() # self._navigation_results[robot1] -> false
        
@@ -76,7 +76,6 @@ class AndinoFleetManager(Node):
            self.get_logger().info(f'Created new client for {req.robot_name}')
        else:
            self._robot_goals[req.robot_name].append(req.final_pose)
-       
        resp.success = True
        self.get_logger().info(f'Added a final pose [{req.final_pose[0]}, {req.final_pose[1]}, {req.final_pose[2]}] for {req.robot_name}')
        return resp

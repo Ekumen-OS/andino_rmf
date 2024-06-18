@@ -32,8 +32,10 @@ file(GLOB_RECURSE traffic_editor_paths "maps/*.building.yaml")
 foreach(path ${traffic_editor_paths})
 
   # Get the output world name
-  string(REGEX REPLACE "\\.[^.]*\.[^.]*$" "" no_extension_path ${path})
-  string(REGEX MATCH "[^\/]+$" world_name  ${no_extension_path})
+  string(REPLACE "." ";" list1 ${path})
+  list(GET list1 0 name)
+  string(REPLACE "/" ";" list2 ${name})
+  list(GET list2 -1 world_name)
 
   set(map_path ${path})
   set(output_world_name ${world_name})
@@ -45,21 +47,21 @@ foreach(path ${traffic_editor_paths})
   ## Ign worlds
   ##############################################################################
 
-  # generate Ignition simulation world
-  set(ign_output_dir ${CMAKE_CURRENT_BINARY_DIR}/maps/${output_world_name}_ign)
-  set(ign_output_world_path ${ign_output_dir}/${output_world_name}.world)
-  set(ign_output_model_dir ${ign_output_dir}/models)
-
+  # first, generate the world
   add_custom_command(
-    OUTPUT ${ign_output_world_path}
-    COMMAND ros2 run rmf_building_map_tools building_map_generator ignition ${map_path} ${ign_output_world_path} ${ign_output_model_dir}
+    OUTPUT ${output_world_path}
+    COMMAND ros2 run rmf_building_map_tools building_map_generator gazebo ${map_path} ${output_world_path} ${output_model_dir}
     DEPENDS ${map_path}
   )
 
+  add_custom_target(generate_${output_world_name} ALL
+  DEPENDS ${output_world_path}
+  )
   ##############################################################################
   # Generate the nav graphs
   ##############################################################################
 
+  # now, generate the nav graphs
   set(output_nav_graphs_dir ${output_dir}/nav_graphs/)
   set(output_nav_graphs_phony ${output_nav_graphs_dir}/phony)
   add_custom_command(

@@ -109,6 +109,8 @@ levels:
       - [207, 208, {bidirectional: [4, true], demo_mock_floor_name: [1, ""], demo_mock_lift_name: [1, ""], graph_idx: [2, 0], mutex: [1, ""], orientation: [1, ""], speed_limit: [3, 0]}]
     layers:
       {}
+    measurements:
+      - [209, 210, {distance: [3, 15]}]
     vertices:
       - [506.65199999999999, 438.89800000000002, 0, ""]
       - [506.33300000000003, 298.14400000000001, 0, ""]
@@ -319,6 +321,8 @@ levels:
       - [1396.454, 285.28399999999999, 0, ""]
       - [1467.96, 475.26400000000001, 0, ""]
       - [1467.259, 284.58300000000003, 0, ""]
+      - [1608.4349999999999, 268.74000000000001, 0, ""]
+      - [1610.4349999999999, 978.48599999999999, 0, ""]
     walls:
       - [0, 1, {alpha: [3, 1], texture_height: [3, 2.5], texture_name: [1, default], texture_scale: [3, 1], texture_width: [3, 1]}]
       - [1, 2, {alpha: [3, 1], texture_height: [3, 2.5], texture_name: [1, default], texture_scale: [3, 1], texture_width: [3, 1]}]

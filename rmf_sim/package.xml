@@ -3,7 +3,7 @@
 <package format="3">
   <name>rmf_sim</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>A package to launch RMF simulation for Andino fleet</description>
   <maintainer email="ptientho@stevens.edu">peera</maintainer>
   <license>TODO: License declaration</license>
 

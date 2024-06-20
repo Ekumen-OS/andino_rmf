@@ -166,7 +166,8 @@ def initialize_fleet(config_yaml, nav_graph_path, node, use_sim_time, server_uri
     api = RobotAPI(
         fleet_config['fleet_manager']['prefix'],
         fleet_config['fleet_manager']['user'],
-        fleet_config['fleet_manager']['password'])
+        fleet_config['fleet_manager']['password'],
+        node=node)
 
     # Initialize robots for this fleet
 

@@ -19,7 +19,9 @@ def generate_launch_description():
             os.path.join(get_package_share_directory('rmf_sim'), 'launch'),
             '/common.launch.py'
         ]),
-        launch_arguments={'map_path': os.path.join(get_package_share_directory('rmf_maps'), 'andino_office', 'andino_office.building.yaml')}.items()
+        launch_arguments={'map_path': os.path.join(get_package_share_directory('rmf_maps'), 'maps','andino_office', 'andino_office.building.yaml'),
+                          'use_sim_time': 'true'
+                          }.items()
     )
     # Include Spawn multiple robot launch
     sim_launch = IncludeLaunchDescription(
@@ -29,9 +31,26 @@ def generate_launch_description():
         ])
     )
 
+    fleet_manager = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            os.path.join(get_package_share_directory('andino_fleet'), 'launch'),
+            '/andino_fleet_manager.launch.py'
+        ])
+    )
+
+    fleet_adapter = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            os.path.join(get_package_share_directory('andino_fleet_adapter'), 'launch'),
+            '/andino_fleet_adapter.launch.py'
+        ])
+    )
+
+
     ld = LaunchDescription()
     ld.add_action(common_launch)
-    ld.add_action(sim_launch)
+    #ld.add_action(sim_launch)
+    ld.add_action(fleet_manager)
+    ld.add_action(fleet_adapter)
     
     return ld
 

@@ -8,11 +8,6 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 
-install(DIRECTORY
-  maps/
-  DESTINATION share/${PROJECT_NAME}
-)
-
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
@@ -27,10 +22,13 @@ endif()
 
 ament_package()
 
+message(NOTICE "Starting Compilation...")
+
 file(GLOB_RECURSE traffic_editor_paths "maps/*.building.yaml")
 
 foreach(path ${traffic_editor_paths})
-
+  
+  message(NOTICE "path: ${path}")
   # Get the output world name
   string(REPLACE "." ";" list1 ${path})
   list(GET list1 0 name)
@@ -43,20 +41,33 @@ foreach(path ${traffic_editor_paths})
   set(output_world_path ${output_dir}/${output_world_name}.world)
   set(output_model_dir ${output_dir}/models)
 
-  ##############################################################################
-  ## Ign worlds
-  ##############################################################################
+  message(NOTICE "map_path: ${map_path}")
+  message(NOTICE "output_world_name: ${output_world_name}")
+  message(NOTICE "output_dir: ${output_dir}")
+  message(NOTICE "output_world_path: ${output_world_path}")
+  message(NOTICE "output_model_dir: ${output_model_dir}")
 
+  ##############################################################################
+  ## Generate worlds and download models
+  ##############################################################################
+  message(NOTICE "BUILDING WORLDFILE WITH COMMAND: ros2 run rmf_building_map_tools building_map_generator gazebo ${map_path} ${output_world_path} ${output_model_dir}")
+  message(NOTICE "....Downloading Models and Building to ${output_model_dir}")
   # first, generate the world
   add_custom_command(
     OUTPUT ${output_world_path}
     COMMAND ros2 run rmf_building_map_tools building_map_generator gazebo ${map_path} ${output_world_path} ${output_model_dir}
+    COMMAND ros2 run rmf_building_map_tools building_map_model_downloader ${map_path} -f -e ${output_model_dir}
     DEPENDS ${map_path}
   )
 
   add_custom_target(generate_${output_world_name} ALL
   DEPENDS ${output_world_path}
   )
+
+  message(NOTICE "....Downloading and Building Models to ${output_model_dir} >>>>> DONE")
+
+
+  message(NOTICE "....BUILDING WORLDFILE...DONE")
   ##############################################################################
   # Generate the nav graphs
   ##############################################################################
@@ -79,4 +90,12 @@ foreach(path ${traffic_editor_paths})
     DESTINATION share/${PROJECT_NAME}/maps
   )
 
+  message(NOTICE "....Generating Lane Graphs in  ${output_nav_graphs_dir}...DONE")
+
 endforeach()
+
+install(DIRECTORY
+  maps
+  rviz_config
+  DESTINATION share/${PROJECT_NAME}
+)

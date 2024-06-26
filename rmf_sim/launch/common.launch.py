@@ -18,7 +18,9 @@ def generate_launch_description():
 
     # Declare launch configuration
     map_path = LaunchConfiguration('map_path')
+    map_name = LaunchConfiguration('map_name')
     map_arg = DeclareLaunchArgument('map_path', description='Building description file required by rmf_building_map_tools')
+    map_name_arg = DeclareLaunchArgument('map_name', default_value='L1', description='Initial map name for the visualizer')
     
     viz_config = LaunchConfiguration('viz_config_file')
     viz_config_file_arg = DeclareLaunchArgument('viz_config_file', default_value=os.path.join(get_package_share_directory('rmf_visualization_schedule'), 'config', 'rmf.rviz'))
@@ -57,7 +59,7 @@ def generate_launch_description():
         cmd=[[
             'ros2 launch rmf_visualization visualization.launch.xml',
             ' use_sim_time:=', use_sim_time,
-            ' map_name:=', 'andino_office',
+            ' map_name:=', map_name,
             ' viz_config_file:=', viz_config
         ]],
         shell=True
@@ -87,6 +89,7 @@ def generate_launch_description():
     
     ld = LaunchDescription()
     ld.add_action(map_arg)
+    ld.add_action(map_name_arg)
     ld.add_action(viz_config_file_arg)
     ld.add_action(use_sim_time_arg)
     ld.add_action(traffic_schedule)

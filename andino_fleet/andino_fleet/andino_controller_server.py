@@ -36,7 +36,17 @@ class AndinoControllerServer(Node):
         self._vel_pub = self.create_publisher(Twist,'/cmd_vel',10)
         # current pose topic
         self._pose_pub = self.create_publisher(RobotPose, '/current_pose', 10)
+
+        self._initialize_state()
         self.get_logger().info('Andino Controller Server Started')
+    
+    # This function to ensure all state vars exist
+    def _initialize_state(self):
+        self._curr_x = 0.0
+        self._curr_y = 0.0
+        self._yaw = 0.0
+        self._quat_tf = [0.0, 0.0, 0.0, 0.0]
+
     # This callback is called by the action server to execute tasks for a specific goal handle
     def _execute_callback(self,goal_handle: ServerGoalHandle):
         self.get_logger().info('Andino Start Moving...')

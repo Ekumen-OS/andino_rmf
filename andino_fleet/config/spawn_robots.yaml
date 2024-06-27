@@ -9,12 +9,12 @@
 
 # Take into account that the values for the x, y and z fields depend on the simulation environment.
 andino1:
-  x: 0.0
-  y: 0.0
+  x: 0.4
+  y: 0.4
   z: 0.1
   yaw: 0.0
 andino2:
-  x: -0.4
+  x: 0.1
   y: 0.1
   z: 0.1
   yaw: 0.0

@@ -4,9 +4,10 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, ExecuteProcess
-from launch.actions import GroupAction
+from launch.actions import GroupAction, DeclareLaunchArgument
 from launch_ros.actions import PushRosNamespace
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 import yaml
 
 # helper function to launch multiple controller servers
@@ -50,6 +51,15 @@ def convert_to_text(data: dict):
     return text
 
 def generate_launch_description():
+    
+    world_file = 'office.sdf'
+    
+    enabled_rviz = LaunchConfiguration('rviz')
+    world_name = LaunchConfiguration('world_name')
+
+    rviz_arg = DeclareLaunchArgument('rviz', default_value='true')
+    world_arg = DeclareLaunchArgument('world_name', default_value=world_file)
+    
     config_name = 'spawn_robots.yaml'
     config__file_path = os.path.join(get_package_share_directory('andino_fleet'),'config',config_name)
     with open(config__file_path,'r') as f:
@@ -63,7 +73,8 @@ def generate_launch_description():
             'ros2 launch andino_gz andino_gz.launch.py ',
             'robots:=',
             config_txt,
-            ' rviz:=', 'true'
+            ' rviz:=', enabled_rviz,
+            ' world_name:=', world_name,
         ]],
         shell=True
     )
@@ -71,6 +82,8 @@ def generate_launch_description():
     controller_servers = launch_servers(config=config)
 
     ld = LaunchDescription()
+    ld.add_action(rviz_arg)
+    ld.add_action(world_arg)
     ld.add_action(robots)
     for g in controller_servers:
         ld.add_action(g)

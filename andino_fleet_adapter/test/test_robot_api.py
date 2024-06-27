@@ -28,7 +28,7 @@ def setup():
     # create a new dummy node
     test_node = Node('test_robot_api_node')
     # create RobotAPI object which requires test_node as argument
-    robot_api = RobotAPI('', 'test', 'test', test_node)
+    robot_api = RobotAPI(test_node)
     return robot_api
 
 # test functions

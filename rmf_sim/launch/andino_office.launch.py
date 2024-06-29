@@ -47,7 +47,6 @@ def generate_launch_description():
         ])
     )
 
-
     ld = LaunchDescription()
     ld.add_action(common_launch)
     ld.add_action(sim_launch)
@@ -55,5 +54,3 @@ def generate_launch_description():
     ld.add_action(fleet_adapter)
     
     return ld
-
-    

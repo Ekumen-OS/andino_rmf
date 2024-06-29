@@ -7,6 +7,7 @@
   <maintainer email="ptientho@stevens.edu">peera</maintainer>
   <license>TODO: License declaration</license>
 
+  <depend>nudged</depend>
   <depend>rclpy</depend>
   <depend>std_msgs</depend>
   <exec_depend>rmf_fleet_adapter_python</exec_depend>

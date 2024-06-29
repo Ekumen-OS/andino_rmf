@@ -167,10 +167,9 @@ def initialize_fleet(config_yaml, nav_graph_path, node, use_sim_time, server_uri
         fleet_config['fleet_manager']['prefix'],
         fleet_config['fleet_manager']['user'],
         fleet_config['fleet_manager']['password'],
-        node=node)
+        )
 
     # Initialize robots for this fleet
-
     missing_robots = config_yaml['robots']
 
     def _add_fleet_robots():
@@ -225,6 +224,7 @@ def initialize_fleet(config_yaml, nav_graph_path, node, use_sim_time, server_uri
                         name=robot_name,
                         fleet_name=fleet_name,
                         config=robot_config,
+                        node=node,
                         graph=nav_graph,
                         vehicle_traits=vehicle_traits,
                         transforms=transforms,

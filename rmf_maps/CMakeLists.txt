@@ -96,6 +96,5 @@ endforeach()
 
 install(DIRECTORY
   maps
-  rviz_config
   DESTINATION share/${PROJECT_NAME}
 )

@@ -44,6 +44,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                  name,
                  fleet_name,
                  config,
+                 node,
                  graph,
                  vehicle_traits,
                  transforms,
@@ -58,6 +59,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
         self.name = name
         self.fleet_name = fleet_name
         self.config = config
+        self.node = node
         self.graph = graph
         self.vehicle_traits = vehicle_traits
         self.transforms = transforms
@@ -102,7 +104,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
         self._dock_thread = None
         self._quit_dock_event = threading.Event()
         
-        self.api.get_node().get_logger().info(
+        self.node.get_logger().info(
             f"The robot is starting at: [{self.position[0]:.2f}, "
             f"{self.position[1]:.2f}, {self.position[2]:.2f}]")
 
@@ -115,7 +117,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
             self.last_known_waypoint_index = start.waypoint
             self.on_waypoint = start.waypoint
 
-        self.state_update_timer = self.api.get_node().create_timer(
+        self.state_update_timer = self.node.create_timer(
             1.0 / self.update_frequency,
             self.update)
 
@@ -123,8 +125,8 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
 
     def sleep_for(self, seconds):
         goal_time =\
-          self.api.get_node().get_clock().now() + Duration(nanoseconds=1e9*seconds)
-        while (self.api.get_node().get_clock().now() <= goal_time):
+          self.node.get_clock().now() + Duration(nanoseconds=1e9*seconds)
+        while (self.node.get_clock().now() <= goal_time):
             time.sleep(0.001)
 
     def clear(self):
@@ -139,7 +141,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
     def stop(self):
         # Stop the robot. Tracking variables should remain unchanged.
         while True:
-            self.api.get_node().get_logger().info("Requesting robot to stop...")
+            self.node.get_logger().info("Requesting robot to stop...")
             if self.api.stop(self.name):
                 break
             self.sleep_for(0.1)
@@ -159,7 +161,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
         self.stop()
         self._quit_path_event.clear()
 
-        self.api.get_node().get_logger().info("Received new path to follow...")
+        self.node.get_logger().info("Received new path to follow...")
 
         self.remaining_waypoints = self.get_remaining_waypoints(waypoints)
         assert next_arrival_estimator is not None
@@ -175,7 +177,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                 self.state == RobotState.WAITING):
                 # Check if we need to abort
                 if self._quit_path_event.is_set():
-                    self.api.get_node().get_logger().info("Aborting previously followed "
+                    self.node.get_logger().info("Aborting previously followed "
                                                 "path")
                     return
                 # State machine
@@ -201,7 +203,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                         self.remaining_waypoints = self.remaining_waypoints[1:]
                         self.state = RobotState.MOVING
                     else:
-                        self.api.get_node().get_logger().info(
+                        self.node.get_logger().info(
                             f"Robot {self.name} failed to navigate to "
                             f"[{x:.0f}, {y:.0f}, {theta:.0f}] coordinates. "
                             f"Retrying...")
@@ -217,7 +219,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                                 self.state = RobotState.IDLE
                             else:
                                 if self.path_index is not None:
-                                    self.api.get_node().get_logger().info(
+                                    self.node.get_logger().info(
                                         f"Waiting for "
                                         f"{(waypoint_wait_time - time_now).seconds}s")
                                     self.next_arrival_estimator(
@@ -228,7 +230,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                     # Check if we have reached the target
                     with self._lock:
                         if (self.api.navigation_completed(self.name)):
-                            self.api.get_node().get_logger().info(
+                            self.node.get_logger().info(
                                 f"Robot [{self.name}] has reached its target "
                                 f"waypoint")
                             self.state = RobotState.WAITING
@@ -270,7 +272,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                             self.next_arrival_estimator(
                                 self.path_index, timedelta(seconds=duration))
             self.path_finished_callback()
-            self.api.get_node().get_logger().info(
+            self.node.get_logger().info(
                 f"Robot {self.name} has successfully navigated along "
                 f"requested path.")
 
@@ -305,7 +307,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
 
         def _dock():
             # Request the robot to start the relevant process
-            self.api.get_node().get_logger().info(
+            self.node.get_logger().info(
                 f"Requesting robot {self.name} to dock at {self.dock_name}")
             self.api.start_process(self.name, self.dock_name, self.map_name)
 
@@ -320,16 +322,16 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
             while (not self.api.docking_completed(self.name)):
                 # Check if we need to abort
                 if self._quit_dock_event.is_set():
-                    self.api.get_node().get_logger().info("Aborting docking")
+                    self.node.get_logger().info("Aborting docking")
                     return
-                self.api.get_node().get_logger().info("Robot is docking...")
+                self.node.get_logger().info("Robot is docking...")
                 self.sleep_for(0.1)
 
             with self._lock:
                 self.on_waypoint = self.dock_waypoint_index
                 self.dock_waypoint_index = None
                 self.docking_finished_callback()
-                self.api.get_node().get_logger().info("Docking completed")
+                self.node.get_logger().info("Docking completed")
 
         self._dock_thread = threading.Thread(target=_dock)
         self._dock_thread.start()
@@ -355,7 +357,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                 theta = (2 * np.pi) + theta
             return [x, y, theta]
         else:
-            self.api.get_node().get_logger().error(
+            self.node.get_logger().error(
                 "Unable to retrieve position from robot.")
             return self.position
 
@@ -364,7 +366,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
         if battery_soc is not None:
             return battery_soc
         else:
-            self.api.get_node().get_logger().error(
+            self.node.get_logger().error(
                 "Unable to retrieve battery data from robot.")
             return self.battery_soc
 
@@ -379,14 +381,14 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
         if not self.charger_is_set:
             if ("max_delay" in self.config.keys()):
                 max_delay = self.config["max_delay"]
-                self.api.get_node().get_logger().info(
+                self.node.get_logger().info(
                     f"Setting max delay to {max_delay}s")
                 self.update_handle.set_maximum_delay(max_delay)
             if (self.charger_waypoint_index < self.graph.num_waypoints):
                 self.update_handle.set_charger_waypoint(
                     self.charger_waypoint_index)
             else:
-                self.api.get_node().get_logger().warn(
+                self.node.get_logger().warn(
                     "Invalid waypoint supplied for charger. "
                     "Using default nearest charger in the map")
             self.charger_is_set = True

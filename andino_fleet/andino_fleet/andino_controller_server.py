@@ -130,7 +130,7 @@ class AndinoControllerServer(Node):
             feedback.current_vel.angular.z = w
             feedback.distance_remaining = rho
             
-            self.get_logger().info(f'[Feedback] Current X: {feedback.current_pose.pose.position.x} m | Current Y: {feedback.current_pose.pose.position.y} m | Yaw:{self._yaw} rad')
+            self.get_logger().debug(f'[Feedback] Current X: {feedback.current_pose.pose.position.x} m | Current Y: {feedback.current_pose.pose.position.y} m | Yaw:{self._yaw} rad')
             goal_handle.publish_feedback(feedback)
 
             self.move_robot(v,w)

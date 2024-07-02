@@ -14,6 +14,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 def generate_launch_description():
 
     # Include Common launch
+    '''
     common_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(get_package_share_directory('rmf_sim'), 'launch'),
@@ -25,6 +26,7 @@ def generate_launch_description():
                           'use_sim_time': 'true'
                           }.items()
     )
+    '''
     # Include Spawn multiple robot launch
     sim_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
@@ -40,17 +42,17 @@ def generate_launch_description():
         ])
     )
 
+    '''
     fleet_adapter = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(get_package_share_directory('andino_fleet_adapter'), 'launch'),
             '/andino_fleet_adapter.launch.py'
         ])
     )
+    '''
 
     ld = LaunchDescription()
-    ld.add_action(common_launch)
     ld.add_action(sim_launch)
     ld.add_action(fleet_manager)
-    ld.add_action(fleet_adapter)
     
     return ld

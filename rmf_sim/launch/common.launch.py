@@ -19,11 +19,11 @@ def generate_launch_description():
     # Declare launch configuration
     map_path = LaunchConfiguration('map_path')
     map_name = LaunchConfiguration('map_name')
-    map_arg = DeclareLaunchArgument('map_path', description='Building description file required by rmf_building_map_tools')
+    map_arg = DeclareLaunchArgument('map_path', default_value=os.path.join(get_package_share_directory('rmf_maps'), 'maps', 'andino_office', 'andino_office.building.yaml'))
     map_name_arg = DeclareLaunchArgument('map_name', default_value='L1', description='Initial map name for the visualizer')
     
     viz_config = LaunchConfiguration('viz_config_file')
-    viz_config_file_arg = DeclareLaunchArgument('viz_config_file', default_value=os.path.join(get_package_share_directory('rmf_visualization_schedule'), 'config', 'rmf.rviz'))
+    viz_config_file_arg = DeclareLaunchArgument('viz_config_file', default_value=os.path.join(get_package_share_directory('rmf_sim'), 'rviz_config', 'office.rviz'))
     
     use_sim_time = LaunchConfiguration('use_sim_time')
     use_sim_time_arg = DeclareLaunchArgument('use_sim_time', default_value='true')

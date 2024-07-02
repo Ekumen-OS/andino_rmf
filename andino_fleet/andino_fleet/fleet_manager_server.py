@@ -26,7 +26,7 @@ from tf_transformations import quaternion_from_euler
 class AndinoFleetManager(Node):
    def __init__(self, node_name: str = 'andino_fleet_manager', *, context: rclpy.Context = None, cli_args: rclpy.List[str] = None, namespace: str = None, use_global_arguments: bool = True, enable_rosout: bool = True, start_parameter_services: bool = True, parameter_overrides: rclpy.List[rclpy.Parameter] = None, allow_undeclared_parameters: bool = False, automatically_declare_parameters_from_overrides: bool = False) -> None:
        super().__init__(node_name)
-       set_logger_level(self.get_name(), LoggingSeverity.DEBUG)
+       set_logger_level(self.get_name(), LoggingSeverity.INFO)
        # define callback groups
        self._group1 = MutuallyExclusiveCallbackGroup()
        self._group2 = MutuallyExclusiveCallbackGroup()
@@ -250,6 +250,8 @@ class AndinoFleetManager(Node):
        result = future.result().result
        # navigation completed
        self._navigation_results[robot_name] = result.success
+       self._current_velocities[robot_name] = 0.01
+       self._distance_remainings[robot_name] = 0.0
        self.get_logger().info('Result: {0}'.format(result.success))
 
    def _feedback_callback(self, robot_name, feedback_msg):
@@ -260,7 +262,7 @@ class AndinoFleetManager(Node):
             self._current_velocities[robot_name] = feedback.current_vel.linear.x
             self._distance_remainings[robot_name] = feedback.distance_remaining
 
-       self.get_logger().info('Distance Remaining: {0}'.format(round(feedback.distance_remaining,3)))
+       self.get_logger().debug(f'[{robot_name}] Distance Remaining: {round(feedback.distance_remaining,3)}')
 
    def _cancel_response_callback(self, robot_name: str, future: Future):
        cancel_response = future.result()

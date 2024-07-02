@@ -194,6 +194,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                     # ------------------------ #
                     # IMPLEMENT YOUR CODE HERE #
                     # Ensure x, y, theta are in units that api.navigate() #
+                    self.node.get_logger().info(f"[{self.name}] Current coordinates: X: {x} | Y: {y}")
                     # ------------------------ #
                     response = self.api.navigate(self.name,
                                                  [x, y, theta],
@@ -268,6 +269,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                         # below with an estimation
                         # ------------------------ #
                         duration = self.api.navigation_remaining_duration(self.name)
+                        self.node.get_logger().info(f"[{self.name}] Remaining duration: {duration}")
                         if self.path_index is not None:
                             self.next_arrival_estimator(
                                 self.path_index, timedelta(seconds=duration))

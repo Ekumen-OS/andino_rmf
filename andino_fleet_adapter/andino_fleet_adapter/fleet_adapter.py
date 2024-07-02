@@ -195,8 +195,7 @@ def initialize_fleet(config_yaml, nav_graph_path, node, use_sim_time, server_uri
                     if (initial_waypoint is not None) and\
                             (initial_orientation is not None):
                         node.get_logger().info(
-                            f"Using provided initial waypoint "
-                            "[{initial_waypoint}] "
+                            f"Using provided initial waypoint [{initial_waypoint}] "
                             f"and orientation [{initial_orientation:.2f}] to "
                             f"initialize starts for robot [{robot_name}]")
                         # Get the waypoint index for initial_waypoint

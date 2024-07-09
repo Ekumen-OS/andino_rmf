@@ -178,6 +178,7 @@ class RobotAPI:
         if resp.is_robot_connected is False:
             self.node.get_logger().warning(f'{robot_name} is not online!')
             return False
+        #self.node.get_logger().info(f'[{robot_name}] completed navigation: {resp.is_navigation_completed}')
         
         return resp.is_navigation_completed
 

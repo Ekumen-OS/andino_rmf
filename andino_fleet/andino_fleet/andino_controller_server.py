@@ -27,8 +27,10 @@ class AndinoControllerServer(Node):
         self.declare_parameter('k_rho', 0.3)
         self.declare_parameter('k_alpha', 0.8)
         self.declare_parameter('k_beta', -0.15)
-        self.declare_parameter('controller_frequency', 0.01)
-        self.declare_parameter('distance_tolerance', 0.01)
+        self.declare_parameter('controller_frequency', 0.1)
+        self.declare_parameter('distance_tolerance', 0.05)
+        self.declare_parameter('max_lin_vel', 0.5)
+        self.declare_parameter('max_ang_vel', 0.3)
 
         # odom topic
         self._odom_sub = self.create_subscription(Odometry,'/odom',self._odom_callback,50)
@@ -80,7 +82,6 @@ class AndinoControllerServer(Node):
         return CancelResponse.ACCEPT
     # This method implements the controller logic and is called by the execution callback given a goal request
     def _go_to(self, xg: float, yg: float, orientation: List, goal_handle: ServerGoalHandle, feedback):
-        
         # set control parameters and states
         # get controller gains from parameters and frequency (k_rho, k_alpha, k_beta, freq, tolerance)
         k_rho = self.get_parameter('k_rho').get_parameter_value().double_value
@@ -88,29 +89,43 @@ class AndinoControllerServer(Node):
         k_beta = self.get_parameter('k_beta').get_parameter_value().double_value
         freq = self.get_parameter('controller_frequency').get_parameter_value().double_value
         tol = self.get_parameter('distance_tolerance').get_parameter_value().double_value
-
+        max_lin_vel = self.get_parameter('max_lin_vel').get_parameter_value().double_value
+        max_ang_vel = self.get_parameter('max_ang_vel').get_parameter_value().double_value
         # get error states (delta_x, delta_y, theta)
         dx,dy,theta = self._update_states(xg,yg)
         rho = self._update_rho(dx,dy)
         alpha = self._update_alpha(dx,dy,theta)
         beta = self._update_beta(alpha, theta)
+        # initialize velocities
+        v = 0.0
+        w = 0.0
 
-        while rho > tol:
-
+        # 1. Turn its heading toward goal
+        while True:
             if goal_handle.is_cancel_requested:
                 self.get_logger().info("Goal is canceled, stopping feedback loop.")
                 
                 # stop robot
                 self.stop_robot()
                 break
-            
+
+            if round(alpha, 2) == 0.00:
+                self.stop_robot()
+                break
+            # update parameters
             dx,dy,theta = self._update_states(xg,yg)
             rho = self._update_rho(dx,dy)
             alpha = self._update_alpha(dx,dy,theta)
             beta = self._update_beta(alpha, theta)
-            # calculates the linear and angular velocity
-            v = k_rho * rho
-            w = k_alpha * alpha + k_beta * beta
+            # Calculate the angular velocity
+            if math.pi - alpha < round(alpha,2):
+                w = (-1) * k_alpha * alpha
+                if abs(w) > max_ang_vel:
+                    w = max_ang_vel * (w / abs(w))  # Preserve the sign of w
+            else:
+                w = k_alpha * alpha
+                if abs(w) > max_ang_vel:
+                    w = max_ang_vel * (w / abs(w))  # Preserve the sign of w
             # defines the values of the feedback message
             feedback.current_pose.header.stamp = self.get_clock().now().to_msg()
             feedback.current_pose.pose.position.x = self._curr_x
@@ -120,23 +135,57 @@ class AndinoControllerServer(Node):
             feedback.current_pose.pose.orientation.y = self._quat_tf[1]
             feedback.current_pose.pose.orientation.z = self._quat_tf[2]
             feedback.current_pose.pose.orientation.w = self._quat_tf[3]
-            
-            # current velocity
-            feedback.current_vel.linear.x = v
-            feedback.current_vel.linear.y = 0.0
-            feedback.current_vel.linear.z = 0.0
-            feedback.current_vel.angular.x = 0.0
-            feedback.current_vel.angular.y = 0.0
-            feedback.current_vel.angular.z = w
+            feedback.max_lin_vel.linear.x = max_lin_vel
+            feedback.max_ang_vel.angular.z = max_ang_vel
             feedback.distance_remaining = rho
             
-            self.get_logger().debug(f'[Feedback] Current X: {feedback.current_pose.pose.position.x} m | Current Y: {feedback.current_pose.pose.position.y} m | Yaw:{self._yaw} rad')
+            self.get_logger().info(f'[Feedback] Alpha:{alpha} rad')
             goal_handle.publish_feedback(feedback)
 
-            self.move_robot(v,w)
+            self.move_robot(0.0,w)
             time.sleep(freq)
+        
+        # 2. Move to goal
+        while True:
+            if goal_handle.is_cancel_requested:
+                self.get_logger().info("Goal is canceled, stopping feedback loop.")
+                
+                # stop robot
+                self.stop_robot()
+                break
             
-        self.stop_robot()
+            if round(rho,2) < tol:
+                self.stop_robot()
+                break
+
+            dx,dy,theta = self._update_states(xg,yg)
+            rho = self._update_rho(dx,dy)
+            alpha = self._update_alpha(dx,dy,theta)
+            beta = self._update_beta(alpha, theta)
+
+            # calculates the linear velocity
+            v = k_rho * rho
+            if v > max_lin_vel:
+                v = max_lin_vel * (v / abs(v))
+            
+            # defines the values of the feedback message
+            feedback.current_pose.header.stamp = self.get_clock().now().to_msg()
+            feedback.current_pose.pose.position.x = self._curr_x
+            feedback.current_pose.pose.position.y = self._curr_y
+            feedback.current_pose.pose.position.z = 0.0
+            feedback.current_pose.pose.orientation.x = self._quat_tf[0]
+            feedback.current_pose.pose.orientation.y = self._quat_tf[1]
+            feedback.current_pose.pose.orientation.z = self._quat_tf[2]
+            feedback.current_pose.pose.orientation.w = self._quat_tf[3]
+            feedback.max_lin_vel.linear.x = max_lin_vel
+            feedback.max_ang_vel.angular.z = max_ang_vel
+            feedback.distance_remaining = rho
+            
+            self.get_logger().info(f'[Feedback] Rho: {rho} m ')
+            goal_handle.publish_feedback(feedback)
+            
+            self.move_robot(v,0.0)
+            time.sleep(freq)
             
     def _odom_callback(self,msg: Odometry):
         self._curr_x = msg.pose.pose.position.x

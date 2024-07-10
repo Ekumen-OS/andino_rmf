@@ -6,5 +6,6 @@ bool success
 ---
 # feedback definition
 geometry_msgs/PoseStamped current_pose
-geometry_msgs/Twist current_vel
+geometry_msgs/Twist max_lin_vel
+geometry_msgs/Twist max_ang_vel
 float32 distance_remaining

@@ -161,8 +161,8 @@ class RobotAPI:
             self.node.get_logger().warning(f'{robot_name} is not online!')
             return None
         
-        # calculate duration(s) := t = distance_remaining(m) / current_velocity(m/s)
-        duration = resp.distance_remaining / resp.current_velocity
+        # estimate duration(s) := t = distance_remaining(m) / max_velocity(m/s)
+        duration = resp.distance_remaining / resp.max_lin_velocity
 
         return duration
     

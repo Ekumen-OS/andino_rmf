@@ -27,9 +27,9 @@ class AndinoControllerServer(Node):
         self.declare_parameter('k_rho', 0.3)
         self.declare_parameter('k_alpha', 0.8)
         self.declare_parameter('k_beta', -0.15)
-        self.declare_parameter('controller_frequency', 0.01)
+        self.declare_parameter('controller_frequency', 0.1)
         self.declare_parameter('distance_tolerance', 0.05)
-        self.declare_parameter('max_lin_vel', 0.4)
+        self.declare_parameter('max_lin_vel', 0.5)
         self.declare_parameter('max_ang_vel', 0.3)
 
         # odom topic
@@ -118,7 +118,7 @@ class AndinoControllerServer(Node):
             alpha = self._update_alpha(dx,dy,theta)
             beta = self._update_beta(alpha, theta)
             # Calculate the angular velocity
-            if round(alpha,2) <= 0.00:
+            if math.pi - alpha < round(alpha,2):
                 w = (-1) * k_alpha * alpha
                 if abs(w) > max_ang_vel:
                     w = max_ang_vel * (w / abs(w))  # Preserve the sign of w
@@ -147,7 +147,6 @@ class AndinoControllerServer(Node):
         
         # 2. Move to goal
         while True:
-            self.get_logger().info(f'Tolerance: {tol}')
             if goal_handle.is_cancel_requested:
                 self.get_logger().info("Goal is canceled, stopping feedback loop.")
                 

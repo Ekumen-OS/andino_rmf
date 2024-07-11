@@ -30,7 +30,7 @@ class AndinoControllerServer(Node):
         self.declare_parameter('controller_frequency', 0.1)
         self.declare_parameter('distance_tolerance', 0.05)
         self.declare_parameter('max_lin_vel', 0.5)
-        self.declare_parameter('max_ang_vel', 0.3)
+        self.declare_parameter('max_ang_vel', 0.6)
 
         # odom topic
         self._odom_sub = self.create_subscription(Odometry,'/odom',self._odom_callback,50)

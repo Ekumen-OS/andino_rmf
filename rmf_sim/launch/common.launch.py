@@ -10,7 +10,6 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, ExecuteProcess
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch.substitutions import LaunchConfiguration
 
@@ -20,10 +19,13 @@ def generate_launch_description():
     map_path = LaunchConfiguration('map_path')
     map_name = LaunchConfiguration('map_name')
     map_arg = DeclareLaunchArgument('map_path', default_value=os.path.join(get_package_share_directory('rmf_maps'), 'maps', 'andino_office', 'andino_office.building.yaml'))
-    map_name_arg = DeclareLaunchArgument('map_name', default_value='L1', description='Initial map name for the visualizer')
+    map_name_arg = DeclareLaunchArgument('map_name', default_value='L1', description='Initial map name for the visualizer.')
     
     viz_config = LaunchConfiguration('viz_config_file')
     viz_config_file_arg = DeclareLaunchArgument('viz_config_file', default_value=os.path.join(get_package_share_directory('rmf_sim'), 'rviz_config', 'office.rviz'))
+    
+    server_uri = LaunchConfiguration('server_uri')
+    server_uri_arg = DeclareLaunchArgument('server_uri', default_value='', description='The URI of the api server to transmit state and task information.')
     
     use_sim_time = LaunchConfiguration('use_sim_time')
     use_sim_time_arg = DeclareLaunchArgument('use_sim_time', default_value='true')
@@ -84,13 +86,14 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}, 
                     {'bidding_time_window': 2.0},
                     {'use_unique_hex_string_with_task_id': 'true'},
-                    {'server_uri': ''}]
+                    {'server_uri': server_uri}]
     )
     
     ld = LaunchDescription()
     ld.add_action(map_arg)
     ld.add_action(map_name_arg)
     ld.add_action(viz_config_file_arg)
+    ld.add_action(server_uri_arg)
     ld.add_action(use_sim_time_arg)
     ld.add_action(traffic_schedule)
     ld.add_action(blockade_monitor)

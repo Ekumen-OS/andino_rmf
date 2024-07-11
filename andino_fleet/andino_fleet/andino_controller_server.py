@@ -29,8 +29,8 @@ class AndinoControllerServer(Node):
         self.declare_parameter('k_beta', -0.15)
         self.declare_parameter('controller_frequency', 0.1)
         self.declare_parameter('distance_tolerance', 0.05)
-        self.declare_parameter('max_lin_vel', 0.5)
-        self.declare_parameter('max_ang_vel', 0.6)
+        self.declare_parameter('max_lin_vel', 0.4)
+        self.declare_parameter('max_ang_vel', 0.3)
 
         # odom topic
         self._odom_sub = self.create_subscription(Odometry,'/odom',self._odom_callback,50)
@@ -139,7 +139,7 @@ class AndinoControllerServer(Node):
             feedback.max_ang_vel.angular.z = max_ang_vel
             feedback.distance_remaining = rho
             
-            self.get_logger().info(f'[Feedback] Alpha:{alpha} rad')
+            self.get_logger().debug(f'[Feedback] Alpha:{alpha} rad')
             goal_handle.publish_feedback(feedback)
 
             self.move_robot(0.0,w)
@@ -181,7 +181,7 @@ class AndinoControllerServer(Node):
             feedback.max_ang_vel.angular.z = max_ang_vel
             feedback.distance_remaining = rho
             
-            self.get_logger().info(f'[Feedback] Rho: {rho} m ')
+            self.get_logger().debug(f'[Feedback] Rho: {rho} m ')
             goal_handle.publish_feedback(feedback)
             
             self.move_robot(v,0.0)

@@ -166,10 +166,10 @@ def initialize_fleet(config_yaml, nav_graph_path, node, use_sim_time, server_uri
     api = RobotAPI(
         fleet_config['fleet_manager']['prefix'],
         fleet_config['fleet_manager']['user'],
-        fleet_config['fleet_manager']['password'])
+        fleet_config['fleet_manager']['password'],
+        )
 
     # Initialize robots for this fleet
-
     missing_robots = config_yaml['robots']
 
     def _add_fleet_robots():
@@ -195,8 +195,7 @@ def initialize_fleet(config_yaml, nav_graph_path, node, use_sim_time, server_uri
                     if (initial_waypoint is not None) and\
                             (initial_orientation is not None):
                         node.get_logger().info(
-                            f"Using provided initial waypoint "
-                            "[{initial_waypoint}] "
+                            f"Using provided initial waypoint [{initial_waypoint}] "
                             f"and orientation [{initial_orientation:.2f}] to "
                             f"initialize starts for robot [{robot_name}]")
                         # Get the waypoint index for initial_waypoint

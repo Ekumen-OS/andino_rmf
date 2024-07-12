@@ -26,7 +26,7 @@ from tf_transformations import quaternion_from_euler
 class AndinoFleetManager(Node):
    def __init__(self, node_name: str = 'andino_fleet_manager', *, context: rclpy.Context = None, cli_args: rclpy.List[str] = None, namespace: str = None, use_global_arguments: bool = True, enable_rosout: bool = True, start_parameter_services: bool = True, parameter_overrides: rclpy.List[rclpy.Parameter] = None, allow_undeclared_parameters: bool = False, automatically_declare_parameters_from_overrides: bool = False) -> None:
        super().__init__(node_name)
-       set_logger_level(self.get_name(), LoggingSeverity.DEBUG)
+       set_logger_level(self.get_name(), LoggingSeverity.INFO)
        # define callback groups
        self._group1 = MutuallyExclusiveCallbackGroup()
        self._group2 = MutuallyExclusiveCallbackGroup()
@@ -49,8 +49,8 @@ class AndinoFleetManager(Node):
        self._pose_topics = dict() # self._pose_topics[robot1] -> topic1
        # current pose
        self._current_poses = dict() # self._current_poses[robot1] -> [x1, y1, yaw1]
-       # current velocity
-       self._current_velocities = dict() # self._current_velocities[robot1] -> curr_vel1
+       # max linear velocity
+       self._max_lin_velocity = 0.0
        # distance remaining
        self._distance_remainings = dict() # self._distance_remainings[robot1] -> curr_dist1
        # navigation result
@@ -137,7 +137,7 @@ class AndinoFleetManager(Node):
        # check if robot is online
        if self._check_robot_online(req.robot_name) is False:
            resp.current_position = [0.0 ,0.0 ,0.0]
-           resp.current_velocity = 0.0
+           resp.max_lin_velocity = 0.0
            resp.distance_remaining = 0.0
            resp.is_robot_connected = False
            resp.is_navigation_completed = False
@@ -147,12 +147,11 @@ class AndinoFleetManager(Node):
        if (req.robot_name not in self._pose_subs) or (req.robot_name not in self._controller_clients):
            # create new robot pose subscription and initialize feedback variables
            self.create_client_and_subscription(req.robot_name)
-           self._current_velocities[req.robot_name] = 0.0
            self._distance_remainings[req.robot_name] = 0.0
        # get current robot pose
        with self._lock:
             resp.current_position = self._current_poses[req.robot_name]
-            resp.current_velocity = self._current_velocities[req.robot_name]
+            resp.max_lin_velocity = self._max_lin_velocity
             resp.distance_remaining = self._distance_remainings[req.robot_name]
             resp.is_robot_connected = True
             resp.is_navigation_completed = self._navigation_results[req.robot_name]
@@ -250,6 +249,7 @@ class AndinoFleetManager(Node):
        result = future.result().result
        # navigation completed
        self._navigation_results[robot_name] = result.success
+       self._distance_remainings[robot_name] = 0.0
        self.get_logger().info('Result: {0}'.format(result.success))
 
    def _feedback_callback(self, robot_name, feedback_msg):
@@ -257,10 +257,10 @@ class AndinoFleetManager(Node):
             feedback = feedback_msg.feedback
 
             # get feedback and save it in class variables
-            self._current_velocities[robot_name] = feedback.current_vel.linear.x
+            self._max_lin_velocity = feedback.max_lin_vel.linear.x
             self._distance_remainings[robot_name] = feedback.distance_remaining
 
-       self.get_logger().info('Distance Remaining: {0}'.format(round(feedback.distance_remaining,3)))
+       self.get_logger().debug(f'[{robot_name}] Distance Remaining: {round(feedback.distance_remaining,3)}')
 
    def _cancel_response_callback(self, robot_name: str, future: Future):
        cancel_response = future.result()

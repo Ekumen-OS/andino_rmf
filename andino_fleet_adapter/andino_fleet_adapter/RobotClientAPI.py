@@ -21,6 +21,7 @@
     these functions.
 '''
 import rclpy
+import rclpy.executors
 from rclpy.node import Node
 from fleet_msg.srv import RobotControl, SendGoal, CancelGoal, RequestRobotPosition, RemoveAllGoals
 
@@ -29,19 +30,21 @@ class RobotAPI:
     # The constructor below accepts parameters typically required to submit
     # http requests. Users should modify the constructor as per the
     # requirements of their robot's API
-    def __init__(self, prefix: str, user: str, password: str, node: Node):
+    def __init__(self, prefix: str, user: str, password: str):
         self.prefix = prefix
         self.user = user
         self.password = password
         self.connected = False
-        self.node = node
-        
+        # Create a node for ROS2 service calls in this api
+        self.node = Node('fleet_adapter_api')
+        # Create an executor for this node to spin service in parallel
+        self.executor = rclpy.executors.MultiThreadedExecutor()
         # Initialize fleet manager client to use ROS API
-        self._add_goal_client = node.create_client(RobotControl, '/add_goal_server')
-        self._send_goal_client = node.create_client(SendGoal, '/send_goal_server')
-        self._cancel_goal_client = node.create_client(CancelGoal, '/cancel_goal_server')
-        self._remove_goal_client = node.create_client(RemoveAllGoals, '/remove_goal_server')
-        self._robot_state_client = node.create_client(RequestRobotPosition, '/robot_pose_server')
+        self._add_goal_client = self.node.create_client(RobotControl, '/add_goal_server')
+        self._send_goal_client = self.node.create_client(SendGoal, '/send_goal_server')
+        self._cancel_goal_client = self.node.create_client(CancelGoal, '/cancel_goal_server')
+        self._remove_goal_client = self.node.create_client(RemoveAllGoals, '/remove_goal_server')
+        self._robot_state_client = self.node.create_client(RequestRobotPosition, '/robot_pose_server')
 
         # Test connectivity
         connected = self.check_connection()
@@ -51,14 +54,11 @@ class RobotAPI:
         else:
             print("Unable to query API server")
 
-        # Create empty service messages
-        self._add_goal_req = RobotControl.Request()
-        self._send_goal_req = SendGoal.Request()
-        self._cancel_goal_req = CancelGoal.Request()
-        self._remove_goal_req = RemoveAllGoals.Request()
-        self._robot_state_req = RequestRobotPosition.Request()
-        self._future = None
+        self.executor.add_node(self.node)
 
+    def get_node(self):
+        return self.node
+    
     def check_connection(self):
         ''' Return True if connection to the robot API server is successful'''
         
@@ -69,12 +69,12 @@ class RobotAPI:
     def position(self, robot_name: str):
         ''' Return [x, y, theta] expressed in the robot's coordinate frame or
             None if any errors are encountered'''
-        self._robot_state_req.robot_name = robot_name
-        self._future = self._robot_state_client.call_async(self._robot_state_req)
+        robot_state_req = RequestRobotPosition.Request()
+        robot_state_req.robot_name = robot_name
+        future = self._robot_state_client.call_async(robot_state_req)
 
-        rclpy.spin_until_future_complete(self.node, self._future)
-        resp = self._future.result()
-
+        self.executor.spin_until_future_complete(future)
+        resp = future.result()
         if resp.is_robot_connected is False:
             self.node.get_logger().warning(f'{robot_name} is not online!')
             return None
@@ -86,35 +86,37 @@ class RobotAPI:
             should return True if the robot has accepted the request,
             else False'''
         # 1. cancel all goals
-        self._cancel_goal_req.robot_name = robot_name
-        self._future = self._cancel_goal_client.call_async(self._cancel_goal_req)
+        cancel_goal_req = CancelGoal.Request()
+        cancel_goal_req.robot_name = robot_name
+        future = self._cancel_goal_client.call_async(cancel_goal_req)
 
-        rclpy.spin_until_future_complete(self.node, self._future)
-        resp = self._future.result()
+        self.executor.spin_until_future_complete(future)
+        resp = future.result()
         if resp.result == True:
             # 2. remove goals in queue
-            self._remove_goal_req.robot_name = robot_name
-            self._future = self._remove_goal_client.call_async(self._remove_goal_req)
+            remove_goal_req = RemoveAllGoals.Request()
+            remove_goal_req.robot_name = robot_name
+            future = self._remove_goal_client.call_async(remove_goal_req)
 
-            rclpy.spin_until_future_complete(self.node, self._future)
-            resp = self._future.result()
+            self.executor.spin_until_future_complete(future)
+            resp = future.result()
             if resp.result == True:
                 # 3. add current pose to goal
-                self._add_goal_req.robot_name = robot_name
-                self._add_goal_req.final_pose = pose
-                self._future = self._add_goal_client.call_async(self._add_goal_req)
+                add_goal_req = RobotControl.Request()
+                add_goal_req.robot_name = robot_name
+                add_goal_req.final_pose = pose
+                future = self._add_goal_client.call_async(add_goal_req)
 
-                rclpy.spin_until_future_complete(self.node, self._future)
-                resp = self._future.result()
-
+                self.executor.spin_until_future_complete(future)
+                resp = future.result()
                 if resp.success == True:
                     # 4. send goal
-                    self._send_goal_req.robot_name = robot_name
-                    self._future = self._send_goal_client.call_async(self._send_goal_req)
+                    send_goal_req = SendGoal.Request()
+                    send_goal_req.robot_name = robot_name
+                    future = self._send_goal_client.call_async(send_goal_req)
 
-                    rclpy.spin_until_future_complete(self.node, self._future)
-                    resp = self._future.result()
-
+                    self.executor.spin_until_future_complete(future)
+                    resp = future.result()
                     if resp.result == True:
                         return True
                     return False
@@ -133,48 +135,50 @@ class RobotAPI:
         return False
 
     def stop(self, robot_name: str):
-        ''' Command the robot to stop.
-            Return True if robot has successfully stopped. Else False'''
-        self._cancel_goal_req.robot_name = robot_name
-        self._future = self._cancel_goal_client.call_async(self._cancel_goal_req)
+        #Command the robot to stop.
+        #Return True if robot has successfully stopped. Else False
+        cancel_goal_req = CancelGoal.Request()
+        cancel_goal_req.robot_name = robot_name
+        future = self._cancel_goal_client.call_async(cancel_goal_req)
 
-        rclpy.spin_until_future_complete(self.node, self._future)
-        resp = self._future.result()
+        self.executor.spin_until_future_complete(future)
+        resp = future.result()
         if resp.result == True:
             return True
 
         return False
-
+    
     def navigation_remaining_duration(self, robot_name: str):
         ''' Return the number of seconds remaining for the robot to reach its
             destination'''
-        self._robot_state_req.robot_name = robot_name
-        self._future = self._robot_state_client.call_async(self._robot_state_req)
+        robot_state_req = RequestRobotPosition.Request()
+        robot_state_req.robot_name = robot_name
+        future = self._robot_state_client.call_async(robot_state_req)
 
-        rclpy.spin_until_future_complete(self.node, self._future)
-        resp = self._future.result()
-
+        self.executor.spin_until_future_complete(future)
+        resp = future.result()
         if resp.is_robot_connected is False:
             self.node.get_logger().warning(f'{robot_name} is not online!')
             return None
         
-        # calculate duration(s) := t = distance_remaining(m) / current_velocity(m/s)
-        duration = resp.distance_remaining / resp.current_velocity
+        # estimate duration(s) := t = distance_remaining(m) / max_velocity(m/s)
+        duration = resp.distance_remaining / resp.max_lin_velocity
 
         return duration
     
     def navigation_completed(self, robot_name: str):
         ''' Return True if the robot has successfully completed its previous
             navigation request. Else False.'''
-        self._robot_state_req.robot_name = robot_name
-        self._future = self._robot_state_client.call_async(self._robot_state_req)
+        robot_state_req = RequestRobotPosition.Request()
+        robot_state_req.robot_name = robot_name
+        future = self._robot_state_client.call_async(robot_state_req)
 
-        rclpy.spin_until_future_complete(self.node, self._future)
-        resp = self._future.result()
-
+        self.executor.spin_until_future_complete(future)
+        resp = future.result()
         if resp.is_robot_connected is False:
             self.node.get_logger().warning(f'{robot_name} is not online!')
             return False
+        #self.node.get_logger().info(f'[{robot_name}] completed navigation: {resp.is_navigation_completed}')
         
         return resp.is_navigation_completed
 

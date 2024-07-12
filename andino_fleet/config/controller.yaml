@@ -1,7 +1,9 @@
 /andino_server_node:
   ros__parameters:
     controller_frequency: 0.1
-    distance_tolerance: 0.04
+    distance_tolerance: 0.05
+    max_lin_vel: 0.4
+    max_ang_vel: 0.3
     k_alpha: 0.8
     k_beta: -0.15
     k_rho: 0.3

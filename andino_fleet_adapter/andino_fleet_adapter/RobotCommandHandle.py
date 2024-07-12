@@ -79,7 +79,6 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
         self.state = RobotState.IDLE
         self.dock_name = ""
         self.adapter = adapter
-
         self.requested_waypoints = []  # RMF Plan waypoints
         self.remaining_waypoints = []
         self.path_finished_callback = None
@@ -104,9 +103,9 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
         self._quit_path_event = threading.Event()
         self._dock_thread = None
         self._quit_dock_event = threading.Event()
-
+        
         self.node.get_logger().info(
-            f"The robot is starting at: [{self.position[0]:.2f}, "
+            f" {self.name} | The robot is starting at: [{self.position[0]:.2f}, "
             f"{self.position[1]:.2f}, {self.position[2]:.2f}]")
 
         # Update tracking variables
@@ -127,6 +126,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
     def sleep_for(self, seconds):
         goal_time =\
           self.node.get_clock().now() + Duration(nanoseconds=1e9*seconds)
+        self.node.get_logger().debug(f'[Sleep for] {self.name} | Target sleep time: {goal_time}')
         while (self.node.get_clock().now() <= goal_time):
             time.sleep(0.001)
 
@@ -138,11 +138,12 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
             self.next_arrival_estimator = None
             self.docking_finished_callback = None
             self.state = RobotState.IDLE
+        self.node.get_logger().debug(f'[Clear] {self.name} | Requested waypoints and robot state cleared')
 
     def stop(self):
         # Stop the robot. Tracking variables should remain unchanged.
         while True:
-            self.node.get_logger().info("Requesting robot to stop...")
+            self.node.get_logger().info(f" {self.name} | Requesting robot to stop...")
             if self.api.stop(self.name):
                 break
             self.sleep_for(0.1)
@@ -152,6 +153,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                 self._follow_path_thread.join()
             self._follow_path_thread = None
             self.clear()
+        self.node.get_logger().debug(f'[Stop] {self.name} | Robot stop completely')
 
     def follow_new_path(
         self,
@@ -162,13 +164,14 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
         self.stop()
         self._quit_path_event.clear()
 
-        self.node.get_logger().info("Received new path to follow...")
+        self.node.get_logger().debug(f"[Follow new path] {self.name} | Received new path to follow...")
 
         self.remaining_waypoints = self.get_remaining_waypoints(waypoints)
         assert next_arrival_estimator is not None
         assert path_finished_callback is not None
         self.next_arrival_estimator = next_arrival_estimator
         self.path_finished_callback = path_finished_callback
+        self.node.get_logger().debug(f'[Follow new path] {self.name} | Remaining waypoints {self.remaining_waypoints}')
 
         def _follow_path():
             target_pose = []
@@ -178,7 +181,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                 self.state == RobotState.WAITING):
                 # Check if we need to abort
                 if self._quit_path_event.is_set():
-                    self.node.get_logger().info("Aborting previously followed "
+                    self.node.get_logger().debug(f"[Follow new path] {self.name} | Aborting previously followed "
                                                 "path")
                     return
                 # State machine
@@ -195,6 +198,8 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                     # ------------------------ #
                     # IMPLEMENT YOUR CODE HERE #
                     # Ensure x, y, theta are in units that api.navigate() #
+                    self.node.get_logger().debug(f"[Follow new path] {self.name} | State = IDLE")
+                    self.node.get_logger().debug(f"[Follow new path] {self.name} | Current coordinates: X: {x} | Y: {y}")
                     # ------------------------ #
                     response = self.api.navigate(self.name,
                                                  [x, y, theta],
@@ -212,6 +217,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
 
                 elif self.state == RobotState.WAITING:
                     self.sleep_for(0.1)
+                    self.node.get_logger().debug(f"[Follow new path] {self.name} | State = WAITING")
                     time_now = self.adapter.now()
                     with self._lock:
                         if self.target_waypoint is not None:
@@ -221,7 +227,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                             else:
                                 if self.path_index is not None:
                                     self.node.get_logger().info(
-                                        f"Waiting for "
+                                        f"{self.name} Waiting for "
                                         f"{(waypoint_wait_time - time_now).seconds}s")
                                     self.next_arrival_estimator(
                                         self.path_index, timedelta(seconds=0.0))
@@ -229,6 +235,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                 elif self.state == RobotState.MOVING:
                     self.sleep_for(0.1)
                     # Check if we have reached the target
+                    self.node.get_logger().debug(f"[Follow new path] {self.name} | State = MOVING")
                     with self._lock:
                         if (self.api.navigation_completed(self.name)):
                             self.node.get_logger().info(
@@ -269,6 +276,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                         # below with an estimation
                         # ------------------------ #
                         duration = self.api.navigation_remaining_duration(self.name)
+                        self.node.get_logger().debug(f"[Follow new path] {self.name} | Remaining duration: {duration}")
                         if self.path_index is not None:
                             self.next_arrival_estimator(
                                 self.path_index, timedelta(seconds=duration))
@@ -359,7 +367,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
             return [x, y, theta]
         else:
             self.node.get_logger().error(
-                "Unable to retrieve position from robot.")
+                f"{self.name} | Unable to retrieve position from robot.")
             return self.position
 
     def get_battery_soc(self):

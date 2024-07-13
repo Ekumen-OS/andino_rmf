@@ -15,8 +15,8 @@ def generate_launch_description():
         package= 'andino_fleet_adapter',
         executable= 'fleet_adapter',
         name= 'andino_fleet_adapter',
-        arguments=['-c', rmf_config_file, '-n', nav_graph_file],
-        output='screen',
+        arguments=['-c', rmf_config_file, '-n', nav_graph_file, '--use_sim_time'],
+        output='both',
     )
     
     ld = LaunchDescription()

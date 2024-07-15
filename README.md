@@ -15,6 +15,7 @@ This package intends to utilize OpenRMF to send a high-level task planning to An
   - [OpenRMF](https://github.com/open-rmf/rmf) : The Open-RMF platform for multi-fleet robot management
 - <b>Python module</b>:
     - [nudged](https://pypi.org/project/nudged/) : A Python lib to estimate scale, rotation, and translation between two sets of 2D points required by RMF system
+    - [transform3d](https://pypi.org/project/transforms3d/) : Code to convert between various geometric transformations
 
 ## Build
 1. To build this package, ensure that ROS workspace is already in your system. If not, then create a workspace
@@ -31,13 +32,15 @@ cd ~/ros2_ws/src
 https://github.com/ekumenlabs/andino_fleet_open_rmf.git
 ```
 
+**Note**: [andino_gz](https://github.com/Ekumen-OS/andino_gz/tree/humble?tab=readme-ov-file) package should be installed from source on that same workspace (src)
+
 3. Install this package dependencies
 
 ```
 rosdep install --from-paths src -i -y
 ```
 ```
-pip install nudged
+pip install nudged transform3d
 ```
 
 4. Build this package and source the install workspace
@@ -48,15 +51,17 @@ source install/setup.bash
 ```
 
 ## Usage
-To launch Andino fleet simulation with OpenRMF,
+This launch file will start everything for the fleet management. Specifically, it will start simulation with robots, controllers for each robot, manager for the fleet, the adapter that connects to RMF and the core nodes from RMF.
 
 ```
 ros2 launch rmf_sim andino_office.launch.py
 ```
 
 ## Demo
-Once the system is launched, you can send a task using the following command in a new terminal,
+We need to install [rmf_demos](https://github.com/open-rmf/rmf_demos) package as we are utilizing the task command from that package.
+At this point, we can send the configured command to the fleet and that we are using one of the default tasks for our example.
 
+In a new terminal,
 ```
 cd ~/rmf_ws
 source install/setup.bash

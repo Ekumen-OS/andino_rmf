@@ -29,7 +29,7 @@ Panels:
     Name: Selection
   - Class: rmf_visualization_rviz2_plugins/SchedulePanel
     Finish: 600
-    Map: B1
+    Map: L1
     Name: SchedulePanel
     Topic: /rmf_visualization/parameters
 Visualization Manager:
@@ -57,7 +57,10 @@ Visualization Manager:
       Enabled: true
       Name: MarkerArray
       Namespaces:
-        {}
+        participant 0: true
+        participant 1: true
+        participant location 0: true
+        participant location 1: true
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -69,9 +72,9 @@ Visualization Manager:
       Enabled: true
       Name: MarkerArray
       Namespaces:
-        AndinoBot/labels/L1: true
-        AndinoBot/lanes/L1: true
-        AndinoBot/waypoints/L1: true
+        Andino/labels/L1: true
+        Andino/lanes/L1: true
+        Andino/waypoints/L1: true
       Topic:
         Depth: 5
         Durability Policy: Transient Local
@@ -83,7 +86,9 @@ Visualization Manager:
       Enabled: true
       Name: MarkerArray
       Namespaces:
-        {}
+        body: true
+        name: true
+        nose: true
       Topic:
         Depth: 10
         Durability Policy: Volatile
@@ -177,11 +182,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 29.827516555786133
+      Scale: 33.96009063720703
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 17.776052474975586
-      Y: -13.670886993408203
+      X: 17.49325180053711
+      Y: -12.303025245666504
     Saved: ~
 Window Geometry:
   Displays:

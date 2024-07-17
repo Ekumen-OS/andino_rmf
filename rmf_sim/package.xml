@@ -5,7 +5,7 @@
   <version>0.0.0</version>
   <description>A package to launch RMF simulation for Andino fleet</description>
   <maintainer email="ptientho@stevens.edu">peera</maintainer>
-  <license>TODO: License declaration</license>
+  <license file="LICENSE">BSD Clause 3</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

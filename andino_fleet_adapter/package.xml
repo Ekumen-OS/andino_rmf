@@ -5,7 +5,7 @@
   <version>0.0.0</version>
   <description>Andino Fleet Adapter</description>
   <maintainer email="ptientho@stevens.edu">peera</maintainer>
-  <license>TODO: License declaration</license>
+  <license file="LICENSE">BSD Clause 3</license>
 
   <depend>rclpy</depend>
   <depend>std_msgs</depend>

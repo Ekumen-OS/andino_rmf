@@ -24,12 +24,12 @@ class AndinoControllerServer(Node):
         self._action_server = ActionServer(self,AndinoController,'andino_controller',self._execute_callback, cancel_callback=self._cancel_callback)
         
         # declare controller tuning parameters
-        self.declare_parameter('k_rho', 0.3) # 0.3
-        self.declare_parameter('k_alpha', 1.0) # 0.8
+        self.declare_parameter('k_rho', 0.3)
+        self.declare_parameter('k_alpha', 1.0)
         self.declare_parameter('k_beta', -0.15)
         self.declare_parameter('controller_frequency', 0.01)
-        self.declare_parameter('distance_tolerance', 0.05)
-        self.declare_parameter('max_lin_vel', 0.4)
+        self.declare_parameter('distance_tolerance', 0.10)
+        self.declare_parameter('max_lin_vel', 0.3)
         self.declare_parameter('max_ang_vel', 0.3)
 
         # odom topic

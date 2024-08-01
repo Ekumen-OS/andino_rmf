@@ -12,7 +12,7 @@ from rclpy.action import ActionClient
 from rclpy.task import Future
 
 
-from fleet_msg.srv import RobotControl, SendGoal, CancelGoal, RemoveAllGoals, RequestRobotPosition
+from andino_fleet_msg.srv import RobotControl, SendGoal, CancelGoal, RemoveAllGoals, RequestRobotPosition
 from controller_action_msg.action import AndinoController
 from controller_action_msg.msg import RobotPose
 from geometry_msgs.msg import Quaternion

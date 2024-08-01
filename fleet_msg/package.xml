@@ -4,7 +4,8 @@
   <name>fleet_msg</name>
   <version>0.0.0</version>
   <description>Custom messages for Andino fleet manager</description>
-  <maintainer email="peera.tienthong@gmail.com">peera_desktop</maintainer>
+  <maintainer email="eloy.briceno@ekumenlabs.com">Eloy Briceno</maintainer>
+  <maintainer email="ptientho@stevens.edu">Peera Tienthong</maintainer>
   <license file="LICENSE">BSD Clause 3</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

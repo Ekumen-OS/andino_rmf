@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>rmf_maps</name>
+  <name>andino_rmf_maps</name>
   <version>0.0.0</version>
   <description>A package to contain map resources and generate models and nav graph</description>
-  <maintainer email="ptientho@stevens.edu">peera</maintainer>
+  <maintainer email="eloy.briceno@ekumenlabs.com">Eloy Briceno</maintainer>
+  <maintainer email="ptientho@stevens.edu">Peera Tienthong</maintainer>
   <license file="LICENSE">BSD Clause 3</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

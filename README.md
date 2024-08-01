@@ -3,8 +3,8 @@ This package intends to utilize OpenRMF to send a high-level task planning to An
   - [Controller server](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/main/andino_fleet/README.md#controller-server) for an Andino robot
   - [Fleet manager](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/main/andino_fleet/README.md#fleet-manager) to manage multiple robots
   - [Fleet adapter](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/andino_fleet_adapter) to bridge a fleet manager with OpenRMF API
-  - [RMF map](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/rmf_maps) to contains map files required by RMF navigation
-  - [RMF sim](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/rmf_sim) to launch everything
+  - [RMF map](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/andino_rmf_maps) to contains map files required by RMF navigation
+  - [RMF sim](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/andino_rmf_sim) to launch everything
 
 ## Project dependencies
 - <b>ROS 2</b>: Humble Hawksbill
@@ -54,7 +54,7 @@ source install/setup.bash
 This launch file will start everything for the fleet management. Specifically, it will start simulation with robots, controllers for each robot, manager for the fleet, the adapter that connects to RMF and the core nodes from RMF.
 
 ```
-ros2 launch rmf_sim andino_office.launch.py
+ros2 launch andino_rmf_sim andino_office.launch.py
 ```
 
 ## Demo

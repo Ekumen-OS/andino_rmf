@@ -11,5 +11,5 @@ This package launches the following ...
 Launch the entire system using the following command,
 
 ```
-ros2 launch rmf_sim andino_office.launch.py
+ros2 launch andino_rmf_sim andino_office.launch.py
 ```

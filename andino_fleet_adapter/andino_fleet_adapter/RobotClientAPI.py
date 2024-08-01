@@ -23,7 +23,7 @@
 import rclpy
 import rclpy.executors
 from rclpy.node import Node
-from fleet_msg.srv import RobotControl, SendGoal, CancelGoal, RequestRobotPosition, RemoveAllGoals
+from andino_fleet_msg.srv import RobotControl, SendGoal, CancelGoal, RequestRobotPosition, RemoveAllGoals
 
 
 class RobotAPI:

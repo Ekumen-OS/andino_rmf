@@ -3,8 +3,9 @@
 <package format="3">
   <name>andino_fleet_adapter</name>
   <version>0.0.0</version>
-  <description>Andino Fleet Adapter</description>
-  <maintainer email="ptientho@stevens.edu">peera</maintainer>
+  <description>This package contains the andino fleet adapter to connect our manager to OpenRMF</description>
+  <maintainer email="eloy.briceno@ekumenlabs.com">Eloy Briceno</maintainer>
+  <maintainer email="ptientho@stevens.edu">Peera Tienthong</maintainer>
   <license file="LICENSE">BSD Clause 3</license>
 
   <depend>rclpy</depend>

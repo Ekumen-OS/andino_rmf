@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(rmf_sim)
+project(andino_fleet_msg)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -7,9 +7,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -23,10 +21,14 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-install(DIRECTORY
-  launch
-  rviz_config
-  DESTINATION share/${PROJECT_NAME}
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/RobotControl.srv"
+  "srv/SendGoal.srv"
+  "srv/CancelGoal.srv"
+  "srv/RequestRobotPosition.srv"
+  "srv/RemoveAllGoals.srv"
 )
+
+ament_export_dependencies(rosidl_default_runtime)
 
 ament_package()

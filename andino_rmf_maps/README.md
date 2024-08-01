@@ -10,7 +10,7 @@ These files include:
 Compile this package to obtain a world file and navgraph which are required by a fleet adapter.
 
 ```
-colcon build --packages-select rmf_maps
+colcon build --packages-select andino_rmf_maps
 ```
 
 Once being compiled, world file and navgraph will be generated inside the shared folder automatically.

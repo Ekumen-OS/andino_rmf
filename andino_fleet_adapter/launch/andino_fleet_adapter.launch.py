@@ -9,7 +9,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
 
     rmf_config_file = os.path.join(get_package_share_directory('andino_fleet_adapter'), 'config.yaml')
-    nav_graph_file = os.path.join(get_package_share_directory('rmf_maps'), 'maps', 'andino_office', 'nav_graphs', '0.yaml')
+    nav_graph_file = os.path.join(get_package_share_directory('andino_rmf_maps'), 'maps', 'andino_office', 'nav_graphs', '0.yaml')
 
     fleet_adapter = Node(
         package= 'andino_fleet_adapter',

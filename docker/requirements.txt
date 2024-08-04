@@ -25,6 +25,8 @@ ros-humble-nav2-common
 ros-humble-rmf-building-map-tools
 ros-humble-rmf-traffic-ros2
 ros-humble-rmf-fleet-adapter
+ros-humble-rmf-fleet-adapter-python
+ros-humble-tf-transformations
 software-properties-common
 sudo
 tmux

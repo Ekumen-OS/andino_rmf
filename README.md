@@ -61,7 +61,7 @@ In a new terminal,
 cd ~/rmf_ws
 source install/setup.bash
 ```
-For example, send a patrol task from point D to E, 1 round
+For example, send a patrol task from point room1 to spawn_robot1, 1 round
 ```
-ros2 run rmf_demos_tasks dispatch_patrol -p D E -n 1 --use_sim_time
+ros2 run rmf_demos_tasks dispatch_patrol -p room1 spawn_robot1 -n 1 --use_sim_time
 ```

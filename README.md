@@ -17,33 +17,28 @@ This package intends to utilize OpenRMF to send a high-level task planning to An
     - [nudged](https://pypi.org/project/nudged/) : A Python lib to estimate scale, rotation, and translation between two sets of 2D points required by RMF system
     - [transform3d](https://pypi.org/project/transforms3d/) : Code to convert between various geometric transformations
 
-## Build
-1. To build this package, ensure that ROS workspace is already in your system. If not, then create a workspace
+## :inbox_tray: Installation
+
+1. Clone this repository
 
 ```sh
-source /opt/ros/humble/setup.bash
-mkdir -p ~/ros2_ws/src
-cd ~/ros2_ws/src
+git clone https://github.com/ekumenlabs/andino_rmf
 ```
 
-2. Clone this repository in ```src``` folder
+2. Set up docker environment:
+Refer to [docker readme](docker/README.md)
 
-```
-https://github.com/ekumenlabs/andino_fleet_open_rmf.git
-```
+Once the container is running and dependencies have been installed you can proceed to package building.
 
-**Note**: [andino_gz](https://github.com/Ekumen-OS/andino_gz/tree/humble?tab=readme-ov-file) package should be installed from source on that same workspace (src)
+## :package: Build
 
-3. Install this package dependencies
+The package contains some dependencies that must be installed in order to build it:
 
 ```
 rosdep install --from-paths src -i -y
 ```
-```
-pip install nudged transform3d
-```
 
-4. Build this package and source the install workspace
+Then build the package and source the install workspace. To do so run the following commands:
 
 ```sh
 colcon build
@@ -66,7 +61,7 @@ In a new terminal,
 cd ~/rmf_ws
 source install/setup.bash
 ```
-For example, send a patrol task from point D to E, 1 round
+For example, send a patrol task from point room1 to spawn_robot1, 1 round
 ```
-ros2 run rmf_demos_tasks dispatch_patrol -p D E -n 1 --use_sim_time
+ros2 run rmf_demos_tasks dispatch_patrol -p room1 spawn_robot1 -n 1 --use_sim_time
 ```

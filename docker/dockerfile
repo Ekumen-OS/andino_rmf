@@ -1,0 +1,80 @@
+FROM osrf/ros:humble-desktop-full
+
+# Arguments for building
+ARG USERID
+ARG USER
+
+# Setup environment
+ENV TERM=linux
+ENV DEBIAN_FRONTEND=noninteractive
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+
+# Copy requirement files and install dependencies
+COPY docker/requirements.txt .
+RUN apt-get update && apt-get install --no-install-recommends -y $(cat requirements.txt) && rm -rf /var/lib/apt/lists/*
+RUN rm requirements.txt
+
+# Install Gazebo Fortress
+RUN sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+RUN wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+RUN sudo apt-get update
+RUN sudo apt-get install ignition-fortress -y
+
+# Create a user with passwordless sudo
+RUN adduser --uid $USERID --gecos "ekumen developer" --disabled-password $USER
+RUN adduser $USER sudo
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+RUN echo "export QT_X11_NO_MITSHM=1" >> /home/$USER/.bashrc
+RUN echo "export IGN_IP=127.0.0.1" >> /home/$USER/.bashrc
+
+USER $USER
+
+# Updates
+RUN sudo apt upgrade -y && sudo apt update && rosdep update
+
+#####################################
+# ROS2 dependencies built from source
+#####################################
+
+# Prepare worksapce for ros2 packages built in the container
+RUN mkdir -p /home/$USER/ros_deps_ws/src
+WORKDIR /home/$USER/ros_deps_ws/src
+# Clone andino_gz
+RUN git clone https://github.com/Ekumen-OS/andino_gz.git
+WORKDIR /home/$USER/ros_deps_ws
+# Clonse rmf-demos-tasks
+RUN git clone https://github.com/open-rmf/rmf_demos.git -b humble
+# Rosdep install
+RUN . /opt/ros/humble/setup.sh && rosdep install -y -i --from-paths src
+# Build
+RUN . /opt/ros/humble/setup.sh && colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
+# Adds overlay to the bashrc
+RUN echo "source /home/$USER/ros_deps_ws/install/setup.bash" >> /home/$USER/.bashrc
+
+######################
+# Bashrc configuration
+######################
+
+# Adds to bashrc the ros humble overlay sourcing.
+RUN echo "source /opt/ros/humble/setup.bash" >> /home/$USER/.bashrc
+# Adds colcon autocomplete
+RUN echo "source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash" >> /home/$USER/.bashrc
+
+
+#########################
+# Pip installation setup
+#########################
+RUN sudo pip install nudged transforms3d
+
+#########################
+# Workspace configuration
+#########################
+
+# Creates the src folder of the workspace.
+RUN mkdir -p /home/$USER/ws/src
+
+
+# Defines a workspace folder.
+WORKDIR /home/$USER/ws
+
+CMD ["/bin/bash"]

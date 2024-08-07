@@ -1,5 +1,8 @@
 # Andino Fleet with OpenRMF
-This package intends to utilize OpenRMF to send a high-level task planning to Andino robot fleet. To achieve this goal, three main developments are included as the following.
+
+<img src="docs/andino_rmf.png"/>
+
+This package intends to utilize OpenRMF to send a high-level task planning to [Andino](https://github.com/Ekumen-OS/andino) robot fleet. To achieve this goal, three main developments are included as the following.
   - [Controller server](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/main/andino_fleet/README.md#controller-server) for an Andino robot
   - [Fleet manager](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/main/andino_fleet/README.md#fleet-manager) to manage multiple robots
   - [Fleet adapter](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/andino_fleet_adapter) to bridge a fleet manager with OpenRMF API
@@ -58,10 +61,9 @@ At this point, we can send the configured command to the fleet and that we are u
 
 In a new terminal,
 ```
-cd ~/rmf_ws
 source install/setup.bash
 ```
-For example, send a patrol task from point room1 to spawn_robot1, 1 round
+For example, send a patrol task from point `room2` to `room6`, only 1 (n=1) round.
 ```
-ros2 run rmf_demos_tasks dispatch_patrol -p room1 spawn_robot1 -n 1 --use_sim_time
+ros2 run rmf_demos_tasks dispatch_patrol -p room2 room6 -n 1 --use_sim_time
 ```

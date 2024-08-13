@@ -40,9 +40,9 @@ RUN sudo apt upgrade -y && sudo apt update && rosdep update
 RUN mkdir -p /home/$USER/ros_deps_ws/src
 WORKDIR /home/$USER/ros_deps_ws/src
 # Clone andino_gz
-RUN git clone https://github.com/Ekumen-OS/andino_gz.git
+RUN git clone https://github.com/Ekumen-OS/andino_gz.git -b humble && cd andino_gz && git reset --hard 41b523aba24c6eaff114bd211edf48403678a5aa
 WORKDIR /home/$USER/ros_deps_ws
-# Clonse rmf-demos-tasks
+# Clone rmf-demos-tasks
 RUN git clone https://github.com/open-rmf/rmf_demos.git -b humble
 # Rosdep install
 RUN . /opt/ros/humble/setup.sh && rosdep install -y -i --from-paths src

@@ -64,7 +64,7 @@ def generate_launch_description():
             'robots:=',
             config_txt,
             ' rviz:=', 'False',
-            ' world_name:=', 'office.sdf',
+            ' world_name:=', 'populated_office.sdf',
         ]],
         shell=True
     )

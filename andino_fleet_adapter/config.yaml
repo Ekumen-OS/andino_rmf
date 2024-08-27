@@ -90,46 +90,17 @@ robots:
         orientation: 0.0 # radians
       charger:
         waypoint: "spawn_robot4"
-  # Configuration for fifth robot in this fleet
-  andino5:
-    robot_config:
-      max_delay: 15.0 # allowed seconds of delay of the current itinerary before it gets interrupted and replanned
-    rmf_config:
-      robot_state_update_frequency: 0.5
-      start:
-        map_name: "L1"
-        waypoint: "spawn_robot5"
-        orientation: 0.0 # radians
-      charger:
-        waypoint: "spawn_robot5"
-  # Configuration for sixth robot in this fleet
-  andino6:
-    robot_config:
-      max_delay: 15.0 # allowed seconds of delay of the current itinerary before it gets interrupted and replanned
-    rmf_config:
-      robot_state_update_frequency: 0.5
-      start:
-        map_name: "L1"
-        waypoint: "spawn_robot6"
-        orientation: 0.0 # radians
-      charger:
-        waypoint: "spawn_robot6"
 # TRANSFORM CONFIG =============================================================
 # For computing transforms between Robot and RMF coordinate systems
 
 reference_coordinates:
-  rmf: [[16.0409, -11.4548],
-        [20.4791, -11.4759],
-        [18.2811, -11.4548],
-        [18.3022, -9.9754],
-        [4.6239, -9.9478],
+  rmf: [
+        [4.6239, -10.0],
         [4.8148, -14.8899],
-        [30.4586, -9.9266]]
-  robot: [[-1.26, 1.2469],
-        [3.1769, 1.2258],
-        [1.0, 1.2469],
-        [1.0, 2.7263],
-        [-12.6990, 2.6686],
-        [-12.4898, -2.2277],
-        [13.0982, 2.7879]]
-        
+        [32.1555, -10.0]
+  ]
+  robot: [
+        [-12.3, 3.2],
+        [-12.1, -2.7],
+        [ 14.7, 3.2]
+  ]

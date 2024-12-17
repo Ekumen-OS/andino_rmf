@@ -51,10 +51,36 @@ source install/setup.bash
 ## Usage
 This launch file will start everything for the fleet management. Specifically, it will start simulation with robots, controllers for each robot, manager for the fleet, the adapter that connects to RMF and the core nodes from RMF.
 
+The system has two options for controllers - custom controller and Nav2 controller - each has different ways of launching the system.
+
+### Custom Controller
+To launch system with custom controllers
+
 ```
-ros2 launch andino_rmf_sim andino_office.launch.py
+ros2 launch andino_rmf_sim andino_manager.launch.py
 ```
 
+In a new terminal, launch RMF
+
+```
+ros2 launch andino_rmf_sim andino_office_rmf.launch.py
+```
+
+### Nav2
+
+To launch system with Nav2 controllers
+
+```
+ros2 launch andino_rmf_sim andino_manager.launch.py nav2:=True
+```
+
+In a new terminal, set robot initial positions and run RMF
+
+```
+source install/setup.bash
+ros2 service call /initial_pose_server andino_fleet_msg/srv/InitPose "{robot_names: ['andino1', 'andino2', 'andino3', 'andino4']}"
+ros2 launch andino_rmf_sim andino_office_rmf.launch.py
+```
 ## Demo
 We need to install [rmf_demos](https://github.com/open-rmf/rmf_demos) package as we are utilizing the task command from that package.
 At this point, we can send the configured command to the fleet and that we are using one of the default tasks for our example.

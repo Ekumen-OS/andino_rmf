@@ -27,6 +27,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/CancelGoal.srv"
   "srv/RequestRobotPosition.srv"
   "srv/RemoveAllGoals.srv"
+  "srv/InitPose.srv"
 )
 
 ament_export_dependencies(rosidl_default_runtime)

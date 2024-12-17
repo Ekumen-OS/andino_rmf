@@ -3,7 +3,6 @@ This package consists of the implementation of a controller server and a fleet m
 
 ## Controller Server
 ### Summary
-
 The goal of a controller server is to move an Andino robot from position A to B considering a feedback control loop. By specifying a goal position (x, y, yaw), the robot is able to move to that position. The theory behind this controller is obtained from *Introduction to Autonomous Mobile Robots by Roland Siegwart and Illah R. Nourbakhsh* 
 
 ### Implementation
@@ -15,6 +14,12 @@ In order for a controller to function properly, the following functionalities ar
 - Be able to process a goal request, feedback message, result response, and cancel goal request following [ROS2 action server design standard](https://design.ros2.org/articles/actions.html)
 - Use [custom action message](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/controller_action_msg/action) for this controller
 
+## Nav2 Controller Server
+### Summary
+Users can choose whether to use the custom controller (as above section), or Nav2 controller server integration for general perposes. Thanks to [andino_gz](https://github.com/Ekumen-OS/andino_gz/tree/humble?tab=readme-ov-file#compass-navigation) package, Nav2 controller is integrated and is ready to be used. The package facilitates users by having a flag that enables Nav2 features. This package intends to be a wrapper to launch Nav2-enabled controller(s).
+
+### Implementation
+<img src="../resources/nav2_controller_diagram.png" alt="nav2 diagram" title="nav2 diagram" width="650">
 
 ## Fleet Manager
 ### Summary

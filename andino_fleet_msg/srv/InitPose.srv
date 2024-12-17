@@ -1,0 +1,4 @@
+string[] robot_names
+---
+# result whether the poses of all robots are initialized
+bool result

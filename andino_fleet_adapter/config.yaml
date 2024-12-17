@@ -94,6 +94,7 @@ robots:
 # For computing transforms between Robot and RMF coordinate systems
 
 reference_coordinates:
+  # custom controllers
   rmf: [
         [4.6239, -10.0],
         [4.8148, -14.8899],

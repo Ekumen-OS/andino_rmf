@@ -17,12 +17,12 @@ from controller_action_msg.action import AndinoController
 from controller_action_msg.msg import RobotPose
 
 class AndinoControllerServer(Node):
-    
+
     def __init__(self, node_name: str = 'andino_controller_node', *, context: rclpy.Context = None, cli_args: rclpy.List[str] = None, namespace: str = None, use_global_arguments: bool = True, enable_rosout: bool = True, start_parameter_services: bool = True, parameter_overrides: rclpy.List[rclpy.Parameter] = None, allow_undeclared_parameters: bool = False, automatically_declare_parameters_from_overrides: bool = False) -> None:
         super().__init__(node_name)
         rclpy.logging.set_logger_level(self.get_name(), LoggingSeverity.INFO)
         self._action_server = ActionServer(self,AndinoController,'andino_controller',self._execute_callback, cancel_callback=self._cancel_callback)
-        
+
         # declare controller tuning parameters
         self.declare_parameter('k_rho', 0.3)
         self.declare_parameter('k_alpha', 1.0)
@@ -41,7 +41,7 @@ class AndinoControllerServer(Node):
 
         self._initialize_state()
         self.get_logger().info('Andino Controller Server Started')
-    
+
     # This function to ensure all state vars exist
     def _initialize_state(self):
         self._curr_x = 0.0
@@ -51,7 +51,7 @@ class AndinoControllerServer(Node):
 
     # This callback is called by the action server to execute tasks for a specific goal handle
     def _execute_callback(self,goal_handle: ServerGoalHandle):
-        self.get_logger().info('Andino Start Moving...')
+        self.get_logger().info('Andino starts moving...')
         ##################################################
         # controller implementation
         goal_msg = AndinoController.Goal()
@@ -61,16 +61,16 @@ class AndinoControllerServer(Node):
         goal_x = goal_msg.goal_pose.pose.position.x
         goal_y = goal_msg.goal_pose.pose.position.y
         quat = (goal_msg.goal_pose.pose.orientation.x, goal_msg.goal_pose.pose.orientation.y, goal_msg.goal_pose.pose.orientation.z, goal_msg.goal_pose.pose.orientation.w)
-        
+
         (_,_,goal_yaw,_) = self._quaternion_to_euler(quat)
         self.get_logger().info(f'[Goal] X: {goal_x} m | Goal Y: {goal_y} m | Goal Yaw:{goal_yaw} rad')
-        
+
         self._go_to(goal_x, goal_y, quat, goal_handle, feedback_msg)
 
         if goal_handle.is_cancel_requested:
             goal_handle.canceled()
             return AndinoController.Result()
-        
+
         goal_handle.succeed()
         # send result message
         result = AndinoController.Result()
@@ -104,8 +104,9 @@ class AndinoControllerServer(Node):
         while True:
             if goal_handle.is_cancel_requested:
                 self.get_logger().info("Goal is canceled, stopping feedback loop.")
-                
+
                 # stop robot
+                self.get_logger().info("Stopping robot...")
                 self.stop_robot()
                 break
 
@@ -137,23 +138,23 @@ class AndinoControllerServer(Node):
             feedback.current_pose.pose.orientation.w = self._quat_tf[3]
             feedback.max_lin_vel.linear.x = max_lin_vel
             feedback.max_ang_vel.angular.z = max_ang_vel
-            feedback.distance_remaining = rho
-            
+            feedback.remaining_distance = rho
+
             self.get_logger().debug(f'[Feedback] Alpha:{alpha} rad')
             goal_handle.publish_feedback(feedback)
 
             self.move_robot(0.0,w)
             time.sleep(freq)
-        
+
         # 2. Move to goal
         while True:
             if goal_handle.is_cancel_requested:
                 self.get_logger().info("Goal is canceled, stopping feedback loop.")
-                
+
                 # stop robot
                 self.stop_robot()
                 break
-            
+
             if round(rho,2) <= tol:
                 self.stop_robot()
                 break
@@ -167,7 +168,7 @@ class AndinoControllerServer(Node):
             v = k_rho * rho
             if v > max_lin_vel:
                 v = max_lin_vel * (v / abs(v))
-            
+
             # defines the values of the feedback message
             feedback.current_pose.header.stamp = self.get_clock().now().to_msg()
             feedback.current_pose.pose.position.x = self._curr_x
@@ -179,14 +180,14 @@ class AndinoControllerServer(Node):
             feedback.current_pose.pose.orientation.w = self._quat_tf[3]
             feedback.max_lin_vel.linear.x = max_lin_vel
             feedback.max_ang_vel.angular.z = max_ang_vel
-            feedback.distance_remaining = rho
-            
+            feedback.remaining_distance = rho
+
             self.get_logger().debug(f'[Feedback] Rho: {rho} m ')
             goal_handle.publish_feedback(feedback)
-            
+
             self.move_robot(v,0.0)
             time.sleep(freq)
-            
+
     def _odom_callback(self,msg: Odometry):
         self._curr_x = msg.pose.pose.position.x
         self._curr_y = msg.pose.pose.position.y
@@ -201,7 +202,7 @@ class AndinoControllerServer(Node):
     def _quaternion_to_euler(self, quaternion: List) -> tuple:
         (roll,pitch,yaw) = euler_from_quaternion(quaternion)
         return (roll,pitch,yaw,quaternion)
-    
+
     def _normalize_angle(self, theta) -> float:
         '''
         Normalize theta(radian) to be between (-pi,pi]
@@ -214,21 +215,21 @@ class AndinoControllerServer(Node):
     def _update_rho(self, x: float, y: float) -> float:
         rho = math.sqrt(x**2 + y**2)
         return rho
-    
+
     def _update_alpha(self, x: float, y: float, theta: float) -> float:
         alpha = (-1)*theta + math.atan2(y,x)
         return self._normalize_angle(alpha)
-    
+
     def _update_beta(self, alpha:float, theta: float) -> float:
         beta = (-1)*theta - alpha
         return self._normalize_angle(beta)
-    
+
     def _update_states(self, x_goal : float, y_goal: float) -> tuple:
         delta_x = x_goal - self._curr_x
         delta_y = y_goal - self._curr_y
         theta = self._yaw
         return (delta_x,delta_y,theta)
-    
+
     def _update_topic_names(self) -> str:
         topic_names_and_types = self.get_topic_names_and_types()
         namespace = self.get_namespace()
@@ -237,7 +238,7 @@ class AndinoControllerServer(Node):
             if topic in name:
                 return name
         return ''
-    
+
     def stop_robot(self):
         vel_msg = Twist()
         vel_msg.linear.x = 0.0
@@ -272,6 +273,6 @@ def main(args=None):
     except KeyboardInterrupt:
         andino_server.destroy_node()
         andino_server.get_logger().info('KeyboardInterrupt. Shutting Down...')
-    
+
 if __name__== '__main__':
     main()

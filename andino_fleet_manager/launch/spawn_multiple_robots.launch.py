@@ -20,11 +20,11 @@ def launch_servers(config: dict):
             'odom_topic': '/'+str(k)+'/odom',
             'pose_topic': '/'+str(k)+'/current_pose',
         }
-        
+
         # launch description for 1 action server
         action_server = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([
-                os.path.join(get_package_share_directory('andino_fleet'), 'launch'),
+                os.path.join(get_package_share_directory('andino_controller'), 'launch'),
                 '/andino_controller.launch.py'
             ]),
             launch_arguments=topic_remappings.items()
@@ -51,10 +51,10 @@ def convert_to_text(data: dict):
 
 def generate_launch_description():
     config_name = 'spawn_robots.yaml'
-    config__file_path = os.path.join(get_package_share_directory('andino_fleet'),'config',config_name)
-    with open(config__file_path,'r') as f:
+    config_file_path = os.path.join(get_package_share_directory('andino_fleet_manager'),'config',config_name)
+    with open(config_file_path,'r') as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
-    
+
     # convert dictionary to text for using as an spawning argument
     config_txt = convert_to_text(config)
     # execute andino simulation

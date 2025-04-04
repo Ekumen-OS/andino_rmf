@@ -20,10 +20,10 @@ def generate_launch_description():
 
     config_file = 'controller.yaml'
     andino_server_node = Node(
-        package='andino_fleet',
+        package='andino_controller',
         executable='andino_server',
         name='andino_server_node',
-        parameters= [os.path.join(get_package_share_directory('andino_fleet'), 'config', config_file)],
+        parameters= [os.path.join(get_package_share_directory('andino_controller'), 'config', config_file)],
         remappings=[
             ('/cmd_vel', cmd_vel),
             ('/odom', odom),
@@ -35,5 +35,5 @@ def generate_launch_description():
         cmdvel_arg,
         odom_arg,
         pose_arg,
-        andino_server_node,        
+        andino_server_node,
     ])

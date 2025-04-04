@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>andino_controller</name>
+  <version>0.0.0</version>
+  <description>This package contains the andino controller and manager</description>
+  <maintainer email="eloy.briceno@ekumenlabs.com">Eloy Briceno</maintainer>
+  <maintainer email="ptientho@stevens.edu">Peera Tienthong</maintainer>
+  <license file="LICENSE">BSD Clause 3</license>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+  <exec_depend>ros2launch</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>controller_action_msg</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>tf_transformations</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

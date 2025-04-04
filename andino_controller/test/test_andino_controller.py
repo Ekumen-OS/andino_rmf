@@ -1,6 +1,6 @@
 import pytest
 import rclpy
-from andino_fleet.andino_controller_server import AndinoControllerServer
+from andino_controller import AndinoControllerServer
 from geometry_msgs.msg import Twist
 import random
 import math

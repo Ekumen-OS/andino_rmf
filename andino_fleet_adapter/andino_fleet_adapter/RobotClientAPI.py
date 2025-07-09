@@ -132,6 +132,7 @@ class RobotAPI:
     def navigation_remaining_duration(self, robot_name: str):
         ''' Return the number of seconds remaining for the robot to reach its
             destination'''
+
         robot_state_req = RequestRobotPosition.Request()
         robot_state_req.robot_name = robot_name
         future = self._robot_state_client.call_async(robot_state_req)

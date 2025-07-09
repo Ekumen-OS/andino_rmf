@@ -4,7 +4,7 @@ This package consists of the implementation of a controller server and a fleet m
 ## Controller Server
 ### Summary
 
-The goal of a controller server is to move an Andino robot from position A to B considering a feedback control loop. By specifying a goal position (x, y, yaw), the robot is able to move to that position. The theory behind this controller is obtained from *Introduction to Autonomous Mobile Robots by Roland Siegwart and Illah R. Nourbakhsh* 
+The goal of a controller server is to move an Andino robot from position A to B considering a feedback control loop. By specifying a goal position (x, y, yaw), the robot is able to move to that position. The theory behind this controller is obtained from *Introduction to Autonomous Mobile Robots by Roland Siegwart and Illah R. Nourbakhsh*
 
 ### Implementation
 The controller is implemented as a ROS2 node that creates an action server for a specific andino bot. This action server takes clients requests that specify a Pose as it's goal, send the position information as the action feedback and returns True or False whether the bot arrived at the goal or not due to it's movement being completed or a goal being canceled.
@@ -19,7 +19,7 @@ In order for a controller to function properly, the following functionalities ar
 ## Fleet Manager
 ### Summary
 
-The goal of a fleet manager is to manage multiple robots so that it is able to send commands and receive information from each robot. 
+The goal of a fleet manager is to manage multiple robots so that it is able to send commands and receive information from each robot.
 
 ### Implementation
 The manager is implemented as a ROS2 node that contains multiple services to control the andino fleet and monitor the robot states. These services include
@@ -43,7 +43,7 @@ The fleet manager node have the following features implemented.
 To launch multiple robots with corresponding controller servers,
 
 ```
-ros2 launch andino_fleet spawn_multiple_robot.launch.py
+ros2 launch andino_fleet_manager spawn_multiple_robot.launch.py
 ```
 
 <img src="../resources/multi_robot.png" alt="Multi-robot simulation" title="Multi-robot simulation" width="300"/>
@@ -53,7 +53,7 @@ ros2 launch andino_fleet spawn_multiple_robot.launch.py
 To run the implemented fleet manager,
 
 ```
-ros2 run andino_fleet fleet_manager
+ros2 run andino_fleet_manager fleet_manager
 ```
 
 After the fleet manager node is running, it allows users to interact with the robot fleet as the following.

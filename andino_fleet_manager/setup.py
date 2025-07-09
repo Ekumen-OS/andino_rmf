@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 import os
 from glob import glob
 
-package_name = 'andino_fleet'
+package_name = 'andino_fleet_manager'
 
 setup(
     name=package_name,
@@ -18,14 +18,13 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='root',
-    maintainer_email='peera.tienthong@gmail.com',
+    maintainer_email='peera.tienthong@gmail.com, camila.stolowicz@ekumenlabs.com',
     description='TODO: Package description',
     license='Apache-2.0',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'andino_server = andino_fleet.andino_controller_server:main',
-            'fleet_manager = andino_fleet.fleet_manager_server:main'
+            'fleet_manager = andino_fleet_manager.fleet_manager:main'
         ],
     },
 )

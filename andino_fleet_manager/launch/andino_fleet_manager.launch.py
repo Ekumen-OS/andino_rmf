@@ -5,7 +5,7 @@ from launch import LaunchDescription
 def generate_launch_description():
 
     fleet_manager = Node(
-        package= 'andino_fleet',
+        package= 'andino_fleet_manager',
         name= 'fleet_manager_node',
         executable= 'fleet_manager'
     )

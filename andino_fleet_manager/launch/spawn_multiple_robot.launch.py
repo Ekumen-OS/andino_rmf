@@ -35,12 +35,10 @@ def generate_launch_description():
         cmd=[[
             'ros2 launch andino_gz andino_gz.launch.py ',
             'robots:=',
-            robot_config_txt,
-            ' rviz:=', 'True',
-            ' world_name:=', 'office.sdf',
-            ' map:=', 'office',
+            config_txt,
             ' nav2:=', 'True',
-            ' autostart:=', 'True'
+            ' rviz:=', 'False',
+            ' world_name:=', 'populated_office.sdf',
         ]],
         shell=True
     )

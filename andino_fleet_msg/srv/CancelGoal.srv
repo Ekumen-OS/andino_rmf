@@ -1,5 +1,5 @@
 # request service message to cancel a goal of robot_name
-# it assumes that the goal is already fed to the manager by add_goal service
+# it assumes that the goal is already fed to the manager by send_goal service
 string robot_name
 ---
 # result whether the goal is cancel successfully

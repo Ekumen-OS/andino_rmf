@@ -28,6 +28,7 @@ import rclpy
 import rclpy.executors as executors
 
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.node import Node
 from rclpy.service import SrvTypeRequest, SrvTypeResponse
 
@@ -44,6 +45,9 @@ class AndinoFleetManager(Node):
         self._goal_callback_group = MutuallyExclusiveCallbackGroup()
         self._pose_callback_group = MutuallyExclusiveCallbackGroup()
 
+        self._goal_callback_group = MutuallyExclusiveCallbackGroup()
+        self._pose_callback_group = MutuallyExclusiveCallbackGroup()
+
         self._initialize_services()
 
         self._initial_pose_timer = self.create_timer(1.0, self._initial_pose_timer_callback)
@@ -51,6 +55,14 @@ class AndinoFleetManager(Node):
         self._robot_dict = dict()
 
         for robot_name, initial_pose in config_yaml.items():
+            self._robot_dict[robot_name] = RobotHandler(
+                self,
+                robot_name,
+                initial_pose,
+                self._lock,
+                self._goal_callback_group,
+                self._pose_callback_group,
+            )
             self._robot_dict[robot_name] = RobotHandler(
                 self,
                 robot_name,
@@ -74,6 +86,19 @@ class AndinoFleetManager(Node):
         )
 
     def _send_goal_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
+        """
+        Service callback for handling navigation goal requests.
+
+        Processes requests to send robots to specific navigation goals.
+        Currently logs the goal information and returns success.
+
+        Args:
+            request (SrvTypeRequest): Service request containing robot_name and final_pose
+            response (SrvTypeResponse): Service response to be populated
+
+        Returns:
+            SrvTypeResponse: Response indicating success/failure of goal acceptance
+        """
         if request.robot_name not in self._robot_dict:
             self.get_logger().warning(
                 f"Robot {request.robot_name} not found in fleet manager"
@@ -81,16 +106,23 @@ class AndinoFleetManager(Node):
             response.result = False
             return response
 
-        with self._lock:
-            robot_handler = self._robot_dict[request.robot_name]
-            send_goal_return = robot_handler.send_goal(request.final_pose)
-            if send_goal_return == ReturnFlag.ROBOT_OFFLINE:
-                self.get_logger().warning(
-                    f"Robot {request.robot_name} is offline. Cannot send goal."
-                )
-                response.result = False
-                return response
+        robot_handler = self._robot_dict[request.robot_name]
+        if not robot_handler.is_robot_online():
+            self.get_logger().warning(
+                f"Robot {request.robot_name} is offline"
+            )
+            response.result = False
+            return response
+
+        # with self._lock:
+        #     if robot_handler.current_pose is None:
+        #         self.get_logger().warning(
+        #             f"Robot {request.robot_name} has no pose data available"
+        #         )
+        #         response.result = False
+        #         return response
         response.result = True
+        self.get_logger().info(f"Sending goal to robot {request.robot_name}")
         return response
 
     def _cancel_goal_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):

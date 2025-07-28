@@ -14,6 +14,7 @@ import yaml
 import rclpy
 import rclpy.executors as executors
 
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.node import Node
 from rclpy.service import SrvTypeRequest, SrvTypeResponse
 
@@ -47,12 +48,22 @@ class AndinoFleetManager(Node):
         super().__init__(node_name)
         self._lock = threading.Lock()
 
+        self._goal_callback_group = MutuallyExclusiveCallbackGroup()
+        self._pose_callback_group = MutuallyExclusiveCallbackGroup()
+
         self._initialize_services()
 
         self._robot_dict = dict()
 
         for robot_name, initial_pose in config_yaml.items():
-            self._robot_dict[robot_name] = RobotHandler(self, robot_name, initial_pose, self._lock)
+            self._robot_dict[robot_name] = RobotHandler(
+                self,
+                robot_name,
+                initial_pose,
+                self._lock,
+                self._goal_callback_group,
+                self._pose_callback_group,
+            )
 
         self.get_logger().info("Andino Fleet Manager Started")
 
@@ -89,11 +100,30 @@ class AndinoFleetManager(Node):
         Returns:
             SrvTypeResponse: Response indicating success/failure of goal acceptance
         """
-        self.get_logger().info(
-            f"Send robot {request.robot_name} to goal [{request.final_pose[0]}, {request.final_pose[1]}, {request.final_pose[2]}]"
-        )
+        if request.robot_name not in self._robot_dict:
+            self.get_logger().warning(
+                f"Robot {request.robot_name} not found in fleet manager"
+            )
+            response.result = False
+            return response
 
+        robot_handler = self._robot_dict[request.robot_name]
+        if not robot_handler.is_robot_online():
+            self.get_logger().warning(
+                f"Robot {request.robot_name} is offline"
+            )
+            response.result = False
+            return response
+
+        # with self._lock:
+        #     if robot_handler.current_pose is None:
+        #         self.get_logger().warning(
+        #             f"Robot {request.robot_name} has no pose data available"
+        #         )
+        #         response.result = False
+        #         return response
         response.result = True
+        self.get_logger().info(f"Sending goal to robot {request.robot_name}")
         return response
 
     def _cancel_goal_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):

@@ -28,8 +28,6 @@ from tf_transformations import quaternion_from_euler
 class ReturnFlag(Enum):
     SUCCESS = 0
     ROBOT_OFFLINE = 1
-    UNINITIALIZED_GOAL_HANDLE = 2
-    NO_SUBSCRIBERS = 3
 
 
 class RobotHandler:
@@ -161,7 +159,7 @@ class RobotHandler:
             )
             self._current_pose = msg
 
-    def send_goal(self, goal: list()):
+    def send_goal(self, goal: list()) -> ReturnFlag:
         """
         Send a navigation goal to the robot.
 
@@ -174,7 +172,7 @@ class RobotHandler:
         """
         if not self.is_robot_online():
             self.node.get_logger().warning(f"Robot {self.robot_name} is offline")
-            return False
+            return ReturnFlag.ROBOT_OFFLINE
 
         self._reset_navigation_data()
 
@@ -200,6 +198,7 @@ class RobotHandler:
             f"Sending goal to robot {self.robot_name}: "
             f"[{goal_msg.pose.pose.position.x}, {goal_msg.pose.pose.position.y}, {goal_msg.pose.pose.orientation.z}]"
         )
+        return ReturnFlag.SUCCESS
 
 
     def _feedback_callback(self, feedback_msg : PoseStamped):

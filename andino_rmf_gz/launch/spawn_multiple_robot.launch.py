@@ -29,8 +29,9 @@ def generate_launch_description():
     robots = ExecuteProcess(
         cmd=[[
             'ros2 launch andino_gz andino_gz.launch.py ',
+            ' nav2:=', 'True',
             'robots:=',
-            robot_config_txt,
+            config_txt,
             ' rviz:=', 'False',
             ' world_name:=', 'office.sdf',
             ' nav2:=', 'True',

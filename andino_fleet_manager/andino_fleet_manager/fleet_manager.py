@@ -18,7 +18,7 @@ from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.node import Node
 from rclpy.service import SrvTypeRequest, SrvTypeResponse
 
-from andino_fleet_manager.robot_handler import RobotHandler
+from andino_fleet_manager.robot_handler import ReturnFlag, RobotHandler
 from andino_fleet_msg.srv import SendGoal, CancelGoal, RequestRobotPosition
 
 
@@ -107,23 +107,16 @@ class AndinoFleetManager(Node):
             response.result = False
             return response
 
-        robot_handler = self._robot_dict[request.robot_name]
-        if not robot_handler.is_robot_online():
-            self.get_logger().warning(
-                f"Robot {request.robot_name} is offline"
-            )
-            response.result = False
-            return response
-
-        # with self._lock:
-        #     if robot_handler.current_pose is None:
-        #         self.get_logger().warning(
-        #             f"Robot {request.robot_name} has no pose data available"
-        #         )
-        #         response.result = False
-        #         return response
+        with self._lock:
+            robot_handler = self._robot_dict[request.robot_name]
+            send_goal_return = robot_handler.send_goal(request.final_pose)
+            if send_goal_return == ReturnFlag.ROBOT_OFFLINE:
+                self.get_logger().warning(
+                    f"Robot {request.robot_name} is offline. Cannot send goal."
+                )
+                response.result = False
+                return response
         response.result = True
-        self.get_logger().info(f"Sending goal to robot {request.robot_name}")
         return response
 
     def _cancel_goal_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
@@ -160,7 +153,7 @@ class AndinoFleetManager(Node):
             SrvTypeResponse: Response containing current_position, max_lin_velocity,
                            distance_remaining, is_robot_connected, and is_navigation_completed
         """
-        self.get_logger().info(f"Getting pose for robot {request.robot_name}")
+        # self.get_logger().info(f"Getting pose for robot {request.robot_name}")
 
         if request.robot_name not in self._robot_dict:
             self.get_logger().warning(
@@ -196,10 +189,10 @@ class AndinoFleetManager(Node):
             response.is_robot_connected = True
             response.is_navigation_completed = True
 
-        self.get_logger().info(
-            f"Robot {request.robot_name} position: "
-            f"[{response.current_position[0]}, {response.current_position[1]}, {response.current_position[2]}]"
-        )
+        # self.get_logger().info(
+        #     f"Robot {request.robot_name} position: "
+        #     f"[{response.current_position[0]}, {response.current_position[1]}, {response.current_position[2]}]"
+        # )
         return response
 
 

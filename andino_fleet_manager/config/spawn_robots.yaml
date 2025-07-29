@@ -13,18 +13,18 @@ andino1:
   y: 2.0
   z: 0.1
   yaw: 0.0
-andino2:
-  x: 3.3
-  y: 2.0
-  z: 0.1
-  yaw: 0.0
-andino3:
-  x: -1.
-  y: -0.94
-  z: 0.1
-  yaw: 0.0
-andino4:
-  x: 3.3
-  y: -0.75
-  z: 0.1
-  yaw: 0.0
+# andino2:
+#   x: 3.3
+#   y: 2.0
+#   z: 0.1
+#   yaw: 0.0
+# andino3:
+#   x: -1.
+#   y: -0.94
+#   z: 0.1
+#   yaw: 0.0
+# andino4:
+#   x: 3.3
+#   y: -0.75
+#   z: 0.1
+#   yaw: 0.0

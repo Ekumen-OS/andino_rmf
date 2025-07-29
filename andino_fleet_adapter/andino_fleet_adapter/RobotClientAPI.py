@@ -93,20 +93,7 @@ class RobotAPI:
 
         self.executor.spin_until_future_complete(future)
         resp = future.result()
-        if resp.result == True:
-            # Send the new goal
-            send_goal_req = SendGoal.Request()
-            send_goal_req.robot_name = robot_name
-            send_goal_req.final_pose = pose
-            future = self._send_goal_client.call_async(send_goal_req)
-
-            self.executor.spin_until_future_complete(future)
-            resp = future.result()
-            if resp.result == True:
-                return True
-            return False
-
-        return False
+        return resp.result
 
     def start_process(self, robot_name: str, process: str, map_name: str):
         """Request the robot to begin a process.

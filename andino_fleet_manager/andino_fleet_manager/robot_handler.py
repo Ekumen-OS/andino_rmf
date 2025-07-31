@@ -10,10 +10,11 @@
 from enum import Enum
 import threading
 
-from rclpy.node import Node
 from rclpy.action import ActionClient
 from rclpy.action.client import ClientGoalHandle
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, DurabilityPolicy
 from rclpy.task import Future
 
 from action_msgs.msg import GoalStatus
@@ -66,8 +67,6 @@ class RobotHandler:
         self._current_pose: PoseWithCovarianceStamped = None
         self._reset_navigation_data()
 
-        self._set_initial_pose(robot_name, initial_pose)
-
         # Create a subscriber to the robot's pose updates
         topic_name = "/" + robot_name + "/amcl_pose"
         self.pose_subscriber = self.node.create_subscription(
@@ -83,6 +82,8 @@ class RobotHandler:
         self._controller_client = ActionClient(
             self.node, NavigateToPose, action_name, callback_group=goal_callback_group
         )
+
+        self._set_initial_pose(robot_name, initial_pose)
 
         self.node.get_logger().info(f"Robot initialized with action client: {action_name}")
 
@@ -102,8 +103,15 @@ class RobotHandler:
             initial_pose (dict): Dictionary containing initial pose data with keys:
                                'x', 'y', 'z' for position and 'yaw' for orientation
         """
+        qos_profile = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1
+        )
+
         topic_name = "/" + robot_name + "/initialpose"
-        initial_pose_publisher = self.node.create_publisher(PoseWithCovarianceStamped, topic_name, 10)
+        initial_pose_publisher = self.node.create_publisher(PoseWithCovarianceStamped, topic_name, qos_profile)
         initial_pose_msg = PoseWithCovarianceStamped()
         initial_pose_msg.header.frame_id = 'map'
 
@@ -203,8 +211,6 @@ class RobotHandler:
         Args:
             feedback_msg: The feedback message received from the robot
         """
-        self.node.get_logger().info(
-            f"Received feedback from robot {self.robot_name}")
         feedback = feedback_msg.feedback
         self.current_pose.header = feedback.current_pose.header
         self.current_pose.pose.pose = feedback.current_pose.pose
@@ -232,13 +238,9 @@ class RobotHandler:
 
     def _get_result_callback(self, future : Future):
         result = future.result().result
+        self.node.get_logger().info(f"Result received for robot {self.robot_name}: {result}")
         if self._goal_handle.status == GoalStatus.STATUS_CANCELED:
                return
-        if result.error_code != 0:
-            self.node.get_logger().error(
-                f"Navigation failed with error message: {result.error_msg}"
-            )
-            return
         self.node.get_logger().info("Navigation completed successfully")
 
 

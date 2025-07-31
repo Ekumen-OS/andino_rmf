@@ -25,19 +25,29 @@ def generate_launch_description():
     nav2_params_file_path = os.path.join(get_package_share_directory('andino_rmf_gz'), 'config', nav2_params_name)
 
     # Convert dictionary to text for using as an spawning argument
-    robot_config_txt = convert_to_text(robot_config)
+    config_txt = convert_to_text(config)
+    # Execute andino simulation
+    # robots = ExecuteProcess(
+    #     cmd=[[
+    #         'ros2 launch andino_gz andino_gz.launch.py ',
+    #         ' nav2:=', 'True',
+    #         'robots:=',
+    #         config_txt,
+    #         ' rviz:=', 'False',
+    #         ' world_name:=', 'populated_office.sdf',
+    #     ]],
+    #     shell=True
+    # )
+
     robots = ExecuteProcess(
         cmd=[[
             'ros2 launch andino_gz andino_gz.launch.py ',
-            ' nav2:=', 'True',
             'robots:=',
             config_txt,
-            ' rviz:=', 'False',
+            ' rviz:=', 'True',
             ' world_name:=', 'office.sdf',
             ' nav2:=', 'True',
             ' map:=', 'office',
-            ' autostart:=', 'True',
-            ' params_file:=', nav2_params_file_path,
         ]],
         shell=True
     )

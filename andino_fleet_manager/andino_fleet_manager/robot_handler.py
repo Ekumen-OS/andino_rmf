@@ -115,15 +115,32 @@ class RobotHandler:
         initial_pose_msg = PoseWithCovarianceStamped()
         initial_pose_msg.header.frame_id = 'map'
 
-        initial_pose_msg.pose.pose.position.x = initial_pose["x"]
-        initial_pose_msg.pose.pose.position.y = initial_pose["y"]
-        initial_pose_msg.pose.pose.position.z = initial_pose["z"]
-        orientation = quaternion_from_euler(0, 0, initial_pose["yaw"])
+        # initial_pose_msg.pose.pose.position.x = initial_pose["x"]
+        # initial_pose_msg.pose.pose.position.y = initial_pose["y"]
+        # initial_pose_msg.pose.pose.position.z = initial_pose["z"]
+        # orientation = quaternion_from_euler(0, 0, initial_pose["yaw"])
 
-        initial_pose_msg.pose.pose.orientation.x = orientation[0]
-        initial_pose_msg.pose.pose.orientation.y = orientation[1]
-        initial_pose_msg.pose.pose.orientation.z = orientation[2]
-        initial_pose_msg.pose.pose.orientation.w = orientation[3]
+        match robot_name:
+            case 'andino1':
+                initial_pose_msg.pose.pose.position.x = -2.1
+                initial_pose_msg.pose.pose.position.y = 4.7
+            case 'andino2':
+                initial_pose_msg.pose.pose.position.x = 1.7
+                initial_pose_msg.pose.pose.position.y = 4.7
+            case 'andino3':
+                initial_pose_msg.pose.pose.position.x = -2.1
+                initial_pose_msg.pose.pose.position.y = 1.4
+            case 'andino4':
+                initial_pose_msg.pose.pose.position.x = 1.5
+                initial_pose_msg.pose.pose.position.y = 1.8    
+            case _:
+                initial_pose_msg.pose.pose.position.x = 0.0
+                initial_pose_msg.pose.pose.position.y = 0.0
+
+        # initial_pose_msg.pose.pose.orientation.x = orientation[0]
+        # initial_pose_msg.pose.pose.orientation.y = orientation[1]
+        # initial_pose_msg.pose.pose.orientation.z = orientation[2]
+        # initial_pose_msg.pose.pose.orientation.w = orientation[3]
 
         initial_pose_publisher.publish(initial_pose_msg)
         self.node.get_logger().info(
@@ -240,7 +257,7 @@ class RobotHandler:
         result = future.result().result
         self.node.get_logger().info(f"Result received for robot {self.robot_name}: {result}")
         if self._goal_handle.status == GoalStatus.STATUS_CANCELED:
-               return
+            return
         self.node.get_logger().info("Navigation completed successfully")
 
 

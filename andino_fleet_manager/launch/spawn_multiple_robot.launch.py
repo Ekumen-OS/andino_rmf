@@ -22,29 +22,17 @@ def generate_launch_description():
         robot_config = yaml.load(f, Loader=yaml.SafeLoader)
 
     # Convert dictionary to text for using as an spawning argument
-    config_txt = convert_to_text(config)
-    # Execute andino simulation
-    # robots = ExecuteProcess(
-    #     cmd=[[
-    #         'ros2 launch andino_gz andino_gz.launch.py ',
-    #         ' nav2:=', 'True',
-    #         'robots:=',
-    #         config_txt,
-    #         ' rviz:=', 'False',
-    #         ' world_name:=', 'populated_office.sdf',
-    #     ]],
-    #     shell=True
-    # )
-
+    robot_config_txt = convert_to_text(robot_config)
     robots = ExecuteProcess(
         cmd=[[
             'ros2 launch andino_gz andino_gz.launch.py ',
             'robots:=',
-            config_txt,
+            robot_config_txt,
             ' rviz:=', 'True',
             ' world_name:=', 'office.sdf',
             ' nav2:=', 'True',
             ' map:=', 'office',
+            ' autostart:=', 'True'
         ]],
         shell=True
     )

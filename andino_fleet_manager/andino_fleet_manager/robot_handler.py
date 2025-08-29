@@ -9,6 +9,7 @@
 
 from enum import Enum
 import threading
+import time
 
 from rclpy.action import ActionClient
 from rclpy.action.client import ClientGoalHandle
@@ -62,9 +63,23 @@ class RobotHandler:
         self.robot_name = robot_name
         self._lock = lock
 
+        self.initial_pose = initial_pose
         self._goal_handle: ClientGoalHandle = None
-        self._current_pose: PoseWithCovarianceStamped = None
+        self.current_pose: PoseWithCovarianceStamped = None
         self._reset_navigation_data()
+
+        # Create a publisher for the initial pose.
+        # It's important this publisher is a member of the class so it's not
+        # garbage-collected immediately after publishing.
+        qos_profile = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1
+        )
+        initial_pose_topic = "/" + robot_name + "/initialpose"
+        self.initial_pose_publisher = self.node.create_publisher(
+            PoseWithCovarianceStamped, initial_pose_topic, qos_profile)
 
         # Create a subscriber to the robot's pose updates
         topic_name = "/" + robot_name + "/amcl_pose"
@@ -76,21 +91,38 @@ class RobotHandler:
             callback_group=pose_callback_group,
         )
 
+        self.current_pose = self._get_initial_pose_msg(self.initial_pose)
+
         # Create an action client for sending navigation goals to the robot
         action_name = "/" + robot_name + "/navigate_to_pose"
         self._controller_client = ActionClient(
             self.node, NavigateToPose, action_name, callback_group=goal_callback_group
         )
 
-        self._set_initial_pose(robot_name, initial_pose)
+        self._publish_initial_pose()
 
-        self.node.get_logger().info(f"Robot initialized with action client: {action_name}")
+        self.node.get_logger().info(f"RobotHandler initialized for robot {robot_name}")
 
-        self.node.get_logger().info(
-            f"[{robot_name}] RobotHandler initialized with pose: [{initial_pose['x']}, {initial_pose['y']}, {initial_pose['z']}]"
-        )
+    def _publish_initial_pose(self):
+        """
+        Timer callback to publish the initial pose and then destroy the timer.
+        """
+        # Wait for a subscriber to connect
+        max_wait_time_sec = 5.0
+        start_time = self.node.get_clock().now()
+        self.node.get_logger().info(f"Start time for publishing initial pose: {start_time}")
+        while self.initial_pose_publisher.get_subscription_count() == 0:
+            if (self.node.get_clock().now() - start_time).nanoseconds / 1e9 > max_wait_time_sec:
+                self.node.get_logger().warning("Timed out waiting for a subscriber for the initial pose.")
+                return
+            time.sleep(0.1)
+        end_time = self.node.get_clock().now()
+        initial_pose_msg = self._get_initial_pose_msg(self.initial_pose)
+        self.node.get_logger().info(f"Publishing initial pose for {self.robot_name}. Took {end_time - start_time}")
+        self.initial_pose_publisher.publish(initial_pose_msg)
+        # self.node.get_logger().info(f"One-shot timer for initial pose of {self.robot_name} is complete.")
 
-    def _set_initial_pose(self, robot_name : str, initial_pose: list()):
+    def _get_initial_pose_msg(self, initial_pose: dict) -> PoseWithCovarianceStamped:
         """
         Set the initial pose of the robot and publish it to the robot's initialpose topic.
 
@@ -98,59 +130,33 @@ class RobotHandler:
         the robot's initial position and orientation to help with localization.
 
         Args:
-            robot_name (str): The name of the robot
             initial_pose (dict): Dictionary containing initial pose data with keys:
                                'x', 'y', 'z' for position and 'yaw' for orientation
         """
-        qos_profile = QoSProfile(
-            reliability=ReliabilityPolicy.BEST_EFFORT,
-            durability=DurabilityPolicy.TRANSIENT_LOCAL,
-            history=HistoryPolicy.KEEP_LAST,
-            depth=1
-        )
-
-        topic_name = "/" + robot_name + "/initialpose"
-        initial_pose_publisher = self.node.create_publisher(PoseWithCovarianceStamped, topic_name, qos_profile)
         initial_pose_msg = PoseWithCovarianceStamped()
         initial_pose_msg.header.frame_id = 'map'
         initial_pose_msg.header.stamp = self.node.get_clock().now().to_msg()
 
-        # initial_pose_msg.pose.pose.position.x = initial_pose["x"]
-        # initial_pose_msg.pose.pose.position.y = initial_pose["y"]
-        # initial_pose_msg.pose.pose.position.z = initial_pose["z"]
-        # orientation = quaternion_from_euler(0, 0, initial_pose["yaw"])
+        # Set position from the configuration dictionary, not hardcoded values.
+        initial_pose_msg.pose.pose.position.x = initial_pose["x"]
+        initial_pose_msg.pose.pose.position.y = initial_pose["y"]
+        initial_pose_msg.pose.pose.position.z = initial_pose["z"]
 
-        match robot_name:
-            case 'andino1':
-                initial_pose_msg.pose.pose.position.x = -2.1
-                initial_pose_msg.pose.pose.position.y = 4.7
-            case 'andino2':
-                initial_pose_msg.pose.pose.position.x = 1.7
-                initial_pose_msg.pose.pose.position.y = 4.7
-            case 'andino3':
-                initial_pose_msg.pose.pose.position.x = -2.1
-                initial_pose_msg.pose.pose.position.y = 1.4
-            case 'andino4':
-                initial_pose_msg.pose.pose.position.x = 1.5
-                initial_pose_msg.pose.pose.position.y = 1.8    
-            case _:
-                initial_pose_msg.pose.pose.position.x = 0.0
-                initial_pose_msg.pose.pose.position.y = 0.0
+        # Calculate and set orientation from the yaw value in the configuration.
+        orientation = quaternion_from_euler(0.0, 0.0, initial_pose["yaw"])
+        initial_pose_msg.pose.pose.orientation.x = orientation[0]
+        initial_pose_msg.pose.pose.orientation.y = orientation[1]
+        initial_pose_msg.pose.pose.orientation.z = orientation[2]
+        initial_pose_msg.pose.pose.orientation.w = orientation[3]
 
-        # initial_pose_msg.pose.pose.orientation.x = orientation[0]
-        # initial_pose_msg.pose.pose.orientation.y = orientation[1]
-        # initial_pose_msg.pose.pose.orientation.z = orientation[2]
-        # initial_pose_msg.pose.pose.orientation.w = orientation[3]
-
-        initial_pose_publisher.publish(initial_pose_msg)
-        self.node.get_logger().info(
-            f"Initial pose set for robot {robot_name}: "
-            f"[{initial_pose_msg.pose.pose.position.x}, "
-            f"{initial_pose_msg.pose.pose.position.y}, "
-            f"{initial_pose_msg.pose.pose.orientation.z}]"
-        )
-
-        self.current_pose = initial_pose_msg
+        # x and y are uncertain within a 0.5m radius and its z, roll, pitch and yaw values are completely unknown
+        # The covariance matrix is a 6x6 matrix stored as a 36-element array.
+        # The diagonal elements correspond to variance in x, y, z, roll, pitch, yaw.
+        # Covariance[0] is variance for x, [7] is for y, [14] for z, etc.
+        initial_pose_msg.pose.covariance[0] = 0.25  # variance for x
+        initial_pose_msg.pose.covariance[7] = 0.25  # variance for y
+        initial_pose_msg.pose.covariance[35] = 0.06853891945200942 # variance for yaw
+        return initial_pose_msg
 
     def is_robot_online(self) -> bool:
         """
@@ -177,7 +183,7 @@ class RobotHandler:
             self.node.get_logger().info(
                 f"[{self.robot_name}] Current pose [{msg.pose.pose.position.x}, {msg.pose.pose.position.y}, {msg.pose.pose.orientation.z}]"
             )
-            self._current_pose = msg
+            self.current_pose = msg
 
     def send_goal(self, goal: list()) -> ReturnFlag:
         """
@@ -191,7 +197,7 @@ class RobotHandler:
                               [x, y, z] for position and [yaw] for orientation
         """
         if not self.is_robot_online():
-            self.node.get_logger().warning(f"Robot {self.robot_name} is offline")
+            # self.node.get_logger().warning(f"Robot {self.robot_name} is offline")
             return ReturnFlag.ROBOT_OFFLINE
 
         self._reset_navigation_data()
@@ -209,15 +215,15 @@ class RobotHandler:
         orientation.w = quaternion[3]
         goal_msg.pose.pose.orientation = orientation
 
-        self.node.get_logger().info(
-            f"Preparing to send goal to robot {self.robot_name}: ")
+        # self.node.get_logger().info(
+        #     f"Preparing to send goal to robot {self.robot_name}: ")
         send_goal_future = self._controller_client.send_goal_async(goal_msg, self._feedback_callback)
         send_goal_future.add_done_callback(self._goal_response_callback)
 
-        self.node.get_logger().info(
-            f"Sending goal to robot {self.robot_name}: "
-            f"[{goal_msg.pose.pose.position.x}, {goal_msg.pose.pose.position.y}, {goal_msg.pose.pose.orientation.z}]"
-        )
+        # self.node.get_logger().info(
+        #     f"Sending goal to robot {self.robot_name}: "
+        #     f"[{goal_msg.pose.pose.position.x}, {goal_msg.pose.pose.position.y}, {goal_msg.pose.pose.orientation.z}]"
+        # )
         return ReturnFlag.SUCCESS
 
 
@@ -255,10 +261,10 @@ class RobotHandler:
 
     def _get_result_callback(self, future : Future):
         result = future.result().result
-        self.node.get_logger().info(f"Result received for robot {self.robot_name}: {result}")
+        # self.node.get_logger().info(f"Result received for robot {self.robot_name}: {result}")
         if self._goal_handle.status == GoalStatus.STATUS_CANCELED:
             return
-        self.node.get_logger().info("Navigation completed successfully")
+        # self.node.get_logger().info("Navigation completed successfully")
 
 
     def cancel_goal(self, robot_name: str):
@@ -268,10 +274,10 @@ class RobotHandler:
 
     def _cancel_response_callback(self, future: Future):
        cancel_response = future.result()
-       if len(cancel_response.goals_canceling) > 0:
-           self.node.get_logger().info("Goal successfully cancelled")
-       else:
-           self.node.get_logger().info("Goal failed to cancel")
+    #    if len(cancel_response.goals_canceling) > 0:
+    #     #    self.node.get_logger().info("Goal successfully cancelled")
+    #    else:
+        #    self.node.get_logger().info("Goal failed to cancel")
 
 
     def _reset_navigation_data(self):
@@ -281,7 +287,7 @@ class RobotHandler:
         This method clears the navigation time, estimated time remaining,
         number of recoveries, and distance remaining to prepare for a new goal.
         """
-        self.node.get_logger().info(f"Resetting navigation data for robot {self.robot_name}")
+        # self.node.get_logger().info(f"Resetting navigation data for robot {self.robot_name}")
         self._navigation_time = 0
         self._estimated_time_remaining = 0
         self._number_of_recoveries = 0

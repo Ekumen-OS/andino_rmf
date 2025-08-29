@@ -17,37 +17,22 @@ def convert_to_text(data: dict):
 
 def generate_launch_description():
     robot_config_name = 'spawn_robots.yaml'
-    robot_config_file_path = os.path.join(get_package_share_directory('andino_rmf_gz'), 'config', robot_config_name)
+    robot_config_file_path = os.path.join(get_package_share_directory('andino_fleet_manager'), 'config', robot_config_name)
     with open(robot_config_file_path,'r') as f:
         robot_config = yaml.load(f, Loader=yaml.SafeLoader)
-    
-    nav2_params_name = 'nav2_params.yaml'
-    nav2_params_file_path = os.path.join(get_package_share_directory('andino_rmf_gz'), 'config', nav2_params_name)
 
     # Convert dictionary to text for using as an spawning argument
-    config_txt = convert_to_text(config)
-    # Execute andino simulation
-    # robots = ExecuteProcess(
-    #     cmd=[[
-    #         'ros2 launch andino_gz andino_gz.launch.py ',
-    #         ' nav2:=', 'True',
-    #         'robots:=',
-    #         config_txt,
-    #         ' rviz:=', 'False',
-    #         ' world_name:=', 'populated_office.sdf',
-    #     ]],
-    #     shell=True
-    # )
-
+    robot_config_txt = convert_to_text(robot_config)
     robots = ExecuteProcess(
         cmd=[[
             'ros2 launch andino_gz andino_gz.launch.py ',
             'robots:=',
-            config_txt,
+            robot_config_txt,
             ' rviz:=', 'True',
             ' world_name:=', 'office.sdf',
             ' nav2:=', 'True',
             ' map:=', 'office',
+            ' autostart:=', 'True'
         ]],
         shell=True
     )

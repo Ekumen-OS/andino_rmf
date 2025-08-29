@@ -33,11 +33,12 @@ from rclpy.node import Node
 from rclpy.service import SrvTypeRequest, SrvTypeResponse
 
 from andino_fleet_manager.robot_handler import ReturnFlag, RobotHandler
-from andino_fleet_msg.srv import SendGoal, CancelGoal, RequestRobotPosition
+from andino_fleet_msg.srv import SendGoal, CancelGoal, RequestRobotPosition, SetInitialPose
 
 
 class AndinoFleetManager(Node):
     def __init__(self, config_yaml: dict(), node_name: str = "andino_fleet_manager"):
+
 
         super().__init__(node_name)
         self._lock = threading.Lock()
@@ -75,30 +76,20 @@ class AndinoFleetManager(Node):
         self.get_logger().info("Andino Fleet Manager Started")
 
     def _initialize_services(self):
-        self._send_goal_server = self.create_service(
-            SendGoal, "/send_goal_service", self._send_goal_callback
+        self._send_goal_client = self.create_service(
+            SendGoal, "/send_goal_server", self._send_goal_callback
         )
         self._cancel_goal_server = self.create_service(
             CancelGoal, "/cancel_goal_service", self._cancel_goal_callback
         )
-        self._robot_state_server = self.create_service(
-            RequestRobotPosition, "/robot_pose_service", self._robot_pose_callback
+        self._robot_state_client = self.create_service(
+            RequestRobotPosition, "/robot_pose_server", self._robot_pose_callback
+        )
+        self._set_initial_pose_client = self.create_service(
+            SetInitialPose, "/set_initial_pose", self._set_initial_pose_callback
         )
 
     def _send_goal_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
-        """
-        Service callback for handling navigation goal requests.
-
-        Processes requests to send robots to specific navigation goals.
-        Currently logs the goal information and returns success.
-
-        Args:
-            request (SrvTypeRequest): Service request containing robot_name and final_pose
-            response (SrvTypeResponse): Service response to be populated
-
-        Returns:
-            SrvTypeResponse: Response indicating success/failure of goal acceptance
-        """
         if request.robot_name not in self._robot_dict:
             self.get_logger().warning(
                 f"Robot {request.robot_name} not found in fleet manager"
@@ -119,40 +110,12 @@ class AndinoFleetManager(Node):
         return response
 
     def _cancel_goal_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
-        if request.robot_name not in self._robot_dict:
-            self.get_logger().warning(
-                f"Robot {request.robot_name} not found in fleet manager"
-            )
-            response.result = False
-            return response
+        self.get_logger().info(f"Cancelling goal for robot {request.robot_name}")
 
-        with self._lock:
-            robot_handler = self._robot_dict[request.robot_name]
-            cancel_goal_return = robot_handler.cancel_goal()
-            if cancel_goal_return == ReturnFlag.ROBOT_OFFLINE:
-                self.get_logger().debug(
-                    f"Robot {request.robot_name} is offline. Cannot cancel goal."
-                )
-                response.result = False
-                return response
         response.result = True
         return response
 
     def _robot_pose_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
-        """
-        Service callback for handling robot position and status queries.
-
-        Retrieves current position, velocity, and navigation status for a specific robot.
-        Uses thread-safe access to robot data and provides comprehensive status information.
-
-        Args:
-            request (SrvTypeRequest): Service request containing robot_name
-            response (SrvTypeResponse): Service response to be populated with robot data
-
-        Returns:
-            SrvTypeResponse: Response containing current_position, max_lin_velocity,
-                           distance_remaining, is_robot_connected, and is_navigation_completed
-        """
         # self.get_logger().info(f"Getting pose for robot {request.robot_name}")
 
         if request.robot_name not in self._robot_dict:
@@ -194,15 +157,22 @@ class AndinoFleetManager(Node):
         #     f"[{response.current_position[0]}, {response.current_position[1]}, {response.current_position[2]}]"
         # )
         return response
+    
+    def _set_initial_pose_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
+        if request.robot_name not in self._robot_dict:
+            self.get_logger().warning(
+                f"Robot {request.robot_name} not found in fleet manager"
+            )
+            response.success = False
+            response.message = f"Robot {request.robot_name} not found in fleet manager"
+            return response
 
-    def _initial_pose_timer_callback(self):
-        all_initial_poses_published = True
-        for robot_handler in self._robot_dict.values():
-            if not robot_handler.initial_pose_published:
-                robot_handler.publish_initial_pose()
-                all_initial_poses_published = all_initial_poses_published and robot_handler.initial_pose_published
-        if all_initial_poses_published:
-            self._initial_pose_timer.cancel()
+        with self._lock:
+            robot_handler = self._robot_dict[request.robot_name]
+            robot_handler.publish_initial_pose()
+            response.success = True
+            response.message = f"Initial pose set for robot {request.robot_name}"
+        return response
 
 
 def main(argv=sys.argv):
@@ -230,6 +200,7 @@ def main(argv=sys.argv):
     executor.add_node(fleet_manager)
 
     try:
+        fleet_manager.get_logger().info("Fleet manager executor spinning...")
         executor.spin()
     except KeyboardInterrupt:
         fleet_manager.destroy_node()

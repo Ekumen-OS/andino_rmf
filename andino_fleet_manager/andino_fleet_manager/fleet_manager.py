@@ -19,32 +19,12 @@ from rclpy.node import Node
 from rclpy.service import SrvTypeRequest, SrvTypeResponse
 
 from andino_fleet_manager.robot_handler import ReturnFlag, RobotHandler
-from andino_fleet_msg.srv import SendGoal, CancelGoal, RequestRobotPosition
+from andino_fleet_msg.srv import SendGoal, CancelGoal, RequestRobotPosition, SetInitialPose
 
 
 class AndinoFleetManager(Node):
-    """
-    Central fleet management node for coordinating multiple Andino robots.
-
-    This class manages a fleet of robots by maintaining RobotHandler instances
-    for each robot and providing ROS2 services for navigation control and
-    robot state queries. It serves as the main interface for external systems
-    to interact with the robot fleet.
-    """
-
     def __init__(self, config_yaml: dict(), node_name: str = "andino_fleet_manager"):
-        """
-        Initialize the Andino Fleet Manager.
 
-        Creates a ROS2 node, initializes services for fleet management,
-        and creates RobotHandler instances for each robot defined in the
-        configuration.
-
-        Args:
-            config_yaml (dict): Configuration dictionary containing robot names
-                              as keys and their initial poses as values
-            node_name (str): Name for the ROS2 node (default: "andino_fleet_manager")
-        """
         super().__init__(node_name)
         self._lock = threading.Lock()
 
@@ -68,14 +48,6 @@ class AndinoFleetManager(Node):
         self.get_logger().info("Andino Fleet Manager Started")
 
     def _initialize_services(self):
-        """
-        Initialize ROS2 services for fleet management operations.
-
-        Creates three main services:
-        - /send_goal_server: For sending navigation goals to robots
-        - /cancel_goal_server: For canceling active navigation goals
-        - /robot_pose_server: For querying robot position and status
-        """
         self._send_goal_client = self.create_service(
             SendGoal, "/send_goal_server", self._send_goal_callback
         )
@@ -85,21 +57,11 @@ class AndinoFleetManager(Node):
         self._robot_state_client = self.create_service(
             RequestRobotPosition, "/robot_pose_server", self._robot_pose_callback
         )
+        self._set_initial_pose_client = self.create_service(
+            SetInitialPose, "/set_initial_pose", self._set_initial_pose_callback
+        )
 
     def _send_goal_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
-        """
-        Service callback for handling navigation goal requests.
-
-        Processes requests to send robots to specific navigation goals.
-        Currently logs the goal information and returns success.
-
-        Args:
-            request (SrvTypeRequest): Service request containing robot_name and final_pose
-            response (SrvTypeResponse): Service response to be populated
-
-        Returns:
-            SrvTypeResponse: Response indicating success/failure of goal acceptance
-        """
         if request.robot_name not in self._robot_dict:
             self.get_logger().warning(
                 f"Robot {request.robot_name} not found in fleet manager"
@@ -120,39 +82,12 @@ class AndinoFleetManager(Node):
         return response
 
     def _cancel_goal_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
-        """
-        Service callback for handling goal cancellation requests.
-
-        Processes requests to cancel active navigation goals for specific robots.
-        Currently logs the cancellation request and returns success.
-
-        Args:
-            request (SrvTypeRequest): Service request containing robot_name
-            response (SrvTypeResponse): Service response to be populated
-
-        Returns:
-            SrvTypeResponse: Response indicating success/failure of goal cancellation
-        """
         self.get_logger().info(f"Cancelling goal for robot {request.robot_name}")
 
         response.result = True
         return response
 
     def _robot_pose_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
-        """
-        Service callback for handling robot position and status queries.
-
-        Retrieves current position, velocity, and navigation status for a specific robot.
-        Uses thread-safe access to robot data and provides comprehensive status information.
-
-        Args:
-            request (SrvTypeRequest): Service request containing robot_name
-            response (SrvTypeResponse): Service response to be populated with robot data
-
-        Returns:
-            SrvTypeResponse: Response containing current_position, max_lin_velocity,
-                           distance_remaining, is_robot_connected, and is_navigation_completed
-        """
         # self.get_logger().info(f"Getting pose for robot {request.robot_name}")
 
         if request.robot_name not in self._robot_dict:
@@ -194,23 +129,25 @@ class AndinoFleetManager(Node):
         #     f"[{response.current_position[0]}, {response.current_position[1]}, {response.current_position[2]}]"
         # )
         return response
+    
+    def _set_initial_pose_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
+        if request.robot_name not in self._robot_dict:
+            self.get_logger().warning(
+                f"Robot {request.robot_name} not found in fleet manager"
+            )
+            response.success = False
+            response.message = f"Robot {request.robot_name} not found in fleet manager"
+            return response
+
+        with self._lock:
+            robot_handler = self._robot_dict[request.robot_name]
+            robot_handler.publish_initial_pose()
+            response.success = True
+            response.message = f"Initial pose set for robot {request.robot_name}"
+        return response
 
 
 def main(argv=sys.argv):
-    """
-    Main entry point for the Andino Fleet Manager.
-
-    Initializes ROS2, parses command line arguments for configuration file,
-    creates the fleet manager instance, and runs the node with a multi-threaded
-    executor for handling concurrent service requests.
-
-    Args:
-        argv (list): Command line arguments, defaults to sys.argv
-
-    Command Line Arguments:
-        -c, --config_file (str): Path to the configuration YAML file containing
-                                robot names and initial poses (required)
-    """
     rclpy.init(args=argv)
     args_without_ros = rclpy.utilities.remove_ros_args(argv)
     parser = argparse.ArgumentParser(
@@ -235,6 +172,7 @@ def main(argv=sys.argv):
     executor.add_node(fleet_manager)
 
     try:
+        fleet_manager.get_logger().info("Fleet manager executor spinning...")
         executor.spin()
     except KeyboardInterrupt:
         fleet_manager.destroy_node()

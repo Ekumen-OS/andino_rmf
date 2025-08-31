@@ -9,7 +9,6 @@
 
 from enum import Enum
 import threading
-import time
 
 from rclpy.action import ActionClient
 from rclpy.action.client import ClientGoalHandle
@@ -31,16 +30,6 @@ class ReturnFlag(Enum):
 
 
 class RobotHandler:
-    """
-    Handles individual robot instances within the fleet manager.
-
-    This class manages the state and communication for a single robot,
-    including pose tracking, initial pose setting, navigation goal management,
-    and subscribing to pose updates from the robot's AMCL localization system.
-    It will also handle sending navigation goals to robots and canceling active
-    goals when requested by the fleet manager.
-    """
-
     def __init__(
         self,
         node: Node,
@@ -50,16 +39,6 @@ class RobotHandler:
         goal_callback_group: MutuallyExclusiveCallbackGroup,
         pose_callback_group: MutuallyExclusiveCallbackGroup,
     ):
-        """
-        Initialize a RobotHandler for managing a single robot.
-
-        Args:
-            node (Node): The ROS2 node instance to use for communication
-            robot_name (str): Unique identifier for the robot
-            initial_pose (dict): Dictionary containing robot's initial pose with keys:
-                                'x', 'y', 'z' for position and 'yaw' for orientation
-            lock (threading.Lock): Thread lock for safe concurrent access to robot data
-        """
         self.node = node
         self.robot_name = robot_name
         self._lock = lock
@@ -100,40 +79,17 @@ class RobotHandler:
             self.node, NavigateToPose, action_name, callback_group=goal_callback_group
         )
 
-        self._publish_initial_pose()
-
         self.node.get_logger().info(f"RobotHandler initialized for robot {robot_name}")
 
-    def _publish_initial_pose(self):
-        """
-        Timer callback to publish the initial pose and then destroy the timer.
-        """
-        # Wait for a subscriber to connect
-        max_wait_time_sec = 5.0
-        start_time = self.node.get_clock().now()
-        self.node.get_logger().info(f"Start time for publishing initial pose: {start_time}")
-        while self.initial_pose_publisher.get_subscription_count() == 0:
-            if (self.node.get_clock().now() - start_time).nanoseconds / 1e9 > max_wait_time_sec:
-                self.node.get_logger().warning("Timed out waiting for a subscriber for the initial pose.")
-                return
-            time.sleep(0.1)
-        end_time = self.node.get_clock().now()
+    def publish_initial_pose(self) -> bool:
+        if self.initial_pose_publisher.get_subscription_count() == 0:
+            return False
         initial_pose_msg = self._get_initial_pose_msg(self.initial_pose)
-        self.node.get_logger().info(f"Publishing initial pose for {self.robot_name}. Took {end_time - start_time}")
+        self.node.get_logger().info(f"Publishing initial pose for {self.robot_name}")
         self.initial_pose_publisher.publish(initial_pose_msg)
-        # self.node.get_logger().info(f"One-shot timer for initial pose of {self.robot_name} is complete.")
+        return True
 
     def _get_initial_pose_msg(self, initial_pose: dict) -> PoseWithCovarianceStamped:
-        """
-        Set the initial pose of the robot and publish it to the robot's initialpose topic.
-
-        This method creates and publishes a PoseWithCovarianceStamped message containing
-        the robot's initial position and orientation to help with localization.
-
-        Args:
-            initial_pose (dict): Dictionary containing initial pose data with keys:
-                               'x', 'y', 'z' for position and 'yaw' for orientation
-        """
         initial_pose_msg = PoseWithCovarianceStamped()
         initial_pose_msg.header.frame_id = 'map'
         initial_pose_msg.header.stamp = self.node.get_clock().now().to_msg()
@@ -160,45 +116,14 @@ class RobotHandler:
         return initial_pose_msg
 
     def is_robot_online(self) -> bool:
-        """
-        Check if the robot is online and responsive.
-
-        Returns:
-            bool: True if the robot is online, False otherwise
-        """
-        self.node.get_logger().info(f"Checking if robot {self.robot_name} is online")
         return self._controller_client.wait_for_server(timeout_sec=1.0)
 
     def _pose_callback(self, msg: PoseWithCovarianceStamped):
-        """
-        Callback function for processing incoming pose updates from the robot.
-
-        This method is called whenever a new pose message is received from the
-        robot's AMCL localization system. It updates the current pose with
-        thread-safe access using the provided lock.
-
-        Args:
-            msg (PoseWithCovarianceStamped): The pose message received from the robot
-        """
         with self._lock:
-            self.node.get_logger().info(
-                f"[{self.robot_name}] Current pose [{msg.pose.pose.position.x}, {msg.pose.pose.position.y}, {msg.pose.pose.orientation.z}]"
-            )
             self.current_pose = msg
 
     def send_goal(self, goal: list()) -> ReturnFlag:
-        """
-        Send a navigation goal to the robot.
-
-        This method creates a NavigateToPose action goal and sends it to the robot.
-        It waits for the action server to be available and then sends the goal.
-
-        Args:
-            goal_pose (list): List containing the goal position with elements:
-                              [x, y, z] for position and [yaw] for orientation
-        """
         if not self.is_robot_online():
-            # self.node.get_logger().warning(f"Robot {self.robot_name} is offline")
             return ReturnFlag.ROBOT_OFFLINE
 
         self._reset_navigation_data()
@@ -216,25 +141,12 @@ class RobotHandler:
         orientation.w = quaternion[3]
         goal_msg.pose.pose.orientation = orientation
 
-        # self.node.get_logger().info(
-        #     f"Preparing to send goal to robot {self.robot_name}: ")
         send_goal_future = self._controller_client.send_goal_async(goal_msg, self._feedback_callback)
         send_goal_future.add_done_callback(self._goal_response_callback)
-
-        # self.node.get_logger().info(
-        #     f"Sending goal to robot {self.robot_name}: "
-        #     f"[{goal_msg.pose.pose.position.x}, {goal_msg.pose.pose.position.y}, {goal_msg.pose.pose.orientation.z}]"
-        # )
         return ReturnFlag.SUCCESS
 
 
     def _feedback_callback(self, feedback_msg : PoseStamped):
-        """
-        Callback function for processing feedback from the robot's navigation action.
-
-        Args:
-            feedback_msg: The feedback message received from the robot
-        """
         feedback = feedback_msg.feedback
         self.current_pose.header = feedback.current_pose.header
         self.current_pose.pose.pose = feedback.current_pose.pose
@@ -244,12 +156,6 @@ class RobotHandler:
         self._distance_remaining = feedback.distance_remaining
 
     def _goal_response_callback(self, future: Future):
-        """
-        Callback function for processing the response after sending a navigation goal.
-
-        Args:
-            future: The future object containing the result of the goal sending operation
-        """
         self._goal_handle = future.result()
         if not self._goal_handle.accepted:
             self.node.get_logger().info("Goal rejected")
@@ -262,10 +168,12 @@ class RobotHandler:
 
     def _get_result_callback(self, future : Future):
         result = future.result().result
-        # self.node.get_logger().info(f"Result received for robot {self.robot_name}: {result}")
         if self._goal_handle.status == GoalStatus.STATUS_CANCELED:
+            self._navigation_completed = False
             return
-        # self.node.get_logger().info("Navigation completed successfully")
+        self._distance_remaining = 0.0
+        self._navigation_completed = True
+        self.node.get_logger().info(f"Goal completed")
 
 
     def cancel_goal(self, robot_name: str):
@@ -275,21 +183,17 @@ class RobotHandler:
 
     def _cancel_response_callback(self, future: Future):
        cancel_response = future.result()
-    #    if len(cancel_response.goals_canceling) > 0:
-    #     #    self.node.get_logger().info("Goal successfully cancelled")
-    #    else:
-        #    self.node.get_logger().info("Goal failed to cancel")
-
+       self._navigation_completed = False
 
     def _reset_navigation_data(self):
-        """
-        Reset the navigation data for the robot.
-
-        This method clears the navigation time, estimated time remaining,
-        number of recoveries, and distance remaining to prepare for a new goal.
-        """
-        # self.node.get_logger().info(f"Resetting navigation data for robot {self.robot_name}")
-        self._navigation_time = 0
-        self._estimated_time_remaining = 0
+        self._navigation_completed = False
+        self._navigation_time = 0.0
+        self._estimated_time_remaining = 0.0
         self._number_of_recoveries = 0
-        self._distance_remaining = 0
+        self._distance_remaining = 0.0
+
+    def get_navigation_completed(self) -> bool:
+        return self._navigation_completed
+    
+    def get_distance_remaining(self):
+        return self._distance_remaining

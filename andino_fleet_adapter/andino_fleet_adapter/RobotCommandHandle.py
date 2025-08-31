@@ -197,6 +197,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                     self.node.get_logger().debug(f"[Follow new path] {self.name} | State = IDLE")
                     self.node.get_logger().debug(f"[Follow new path] {self.name} | Current coordinates: X: {x} | Y: {y}")
 
+
                     # ------------------------ #
                     response = self.api.navigate(self.name,
                                                  [x, y, theta],
@@ -267,6 +268,12 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                                     self.on_lane = None  # update_off_grid()
                                     self.on_waypoint = None
 
+                        # ------------------------ #
+                        # IMPLEMENT YOUR CODE HERE #
+                        # If your robot does not have an API to report the
+                        # remaining travel duration, replace the API call
+                        # below with an estimation
+                        # ------------------------ #
                         duration = self.api.navigation_remaining_duration(self.name)
                         self.node.get_logger().debug(f"[Follow new path] {self.name} | Remaining duration: {duration}")
                         if self.path_index is not None:

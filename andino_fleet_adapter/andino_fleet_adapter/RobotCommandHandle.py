@@ -200,6 +200,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                     # Ensure x, y, theta are in units that api.navigate() #
                     self.node.get_logger().debug(f"[Follow new path] {self.name} | State = IDLE")
                     self.node.get_logger().debug(f"[Follow new path] {self.name} | Current coordinates: X: {x} | Y: {y}")
+
                     # ------------------------ #
                     response = self.api.navigate(self.name,
                                                  [x, y, theta],
@@ -269,6 +270,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                                 else:
                                     self.on_lane = None  # update_off_grid()
                                     self.on_waypoint = None
+
                         # ------------------------ #
                         # IMPLEMENT YOUR CODE HERE #
                         # If your robot does not have an API to report the

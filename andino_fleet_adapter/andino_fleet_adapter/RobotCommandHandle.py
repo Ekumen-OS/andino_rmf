@@ -192,6 +192,9 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                     # ------------------------ #
                     # IMPLEMENT YOUR CODE HERE #
                     # Ensure x, y, theta are in units that api.navigate() #
+                    self.node.get_logger().debug(f"[Follow new path] {self.name} | State = IDLE")
+                    self.node.get_logger().debug(f"[Follow new path] {self.name} | Current coordinates: X: {x} | Y: {y}")
+
                     # ------------------------ #
 
                     response = self.api.navigate(self.name,
@@ -262,6 +265,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                                 else:
                                     self.on_lane = None  # update_off_grid()
                                     self.on_waypoint = None
+
 
                         # ------------------------ #
                         # IMPLEMENT YOUR CODE HERE #
@@ -467,4 +471,3 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
         for i in range(len(waypoints)):
             remaining_waypoints.append((i, waypoints[i]))
         return remaining_waypoints
-

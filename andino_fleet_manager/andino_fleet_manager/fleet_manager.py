@@ -33,7 +33,7 @@ from rclpy.node import Node
 from rclpy.service import SrvTypeRequest, SrvTypeResponse
 
 from andino_fleet_manager.robot_handler import ReturnFlag, RobotHandler
-from andino_fleet_msg.srv import SendGoal, CancelGoal, RequestRobotPosition, SetInitialPose
+from andino_fleet_msg.srv import SendGoal, CancelGoal, RequestRobotPosition
 
 
 class AndinoFleetManager(Node):
@@ -85,9 +85,7 @@ class AndinoFleetManager(Node):
         self._robot_state_client = self.create_service(
             RequestRobotPosition, "/robot_pose_server", self._robot_pose_callback
         )
-        self._set_initial_pose_client = self.create_service(
-            SetInitialPose, "/set_initial_pose", self._set_initial_pose_callback
-        )
+        self._timer = self.create_timer(1.0, self._initial_pose_timer_callback)
 
     def _send_goal_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
         if request.robot_name not in self._robot_dict:
@@ -116,8 +114,6 @@ class AndinoFleetManager(Node):
         return response
 
     def _robot_pose_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
-        # self.get_logger().info(f"Getting pose for robot {request.robot_name}")
-
         if request.robot_name not in self._robot_dict:
             self.get_logger().warning(
                 f"Robot {request.robot_name} not found in fleet manager"
@@ -148,31 +144,17 @@ class AndinoFleetManager(Node):
                 robot_handler.current_pose.pose.pose.position.z,
             ]
             response.max_lin_velocity = 1.0
-            response.distance_remaining = 5.0
-            response.is_robot_connected = True
-            response.is_navigation_completed = True
-
-        # self.get_logger().info(
-        #     f"Robot {request.robot_name} position: "
-        #     f"[{response.current_position[0]}, {response.current_position[1]}, {response.current_position[2]}]"
-        # )
+            response.distance_remaining = robot_handler.get_distance_remaining()
+            response.is_robot_connected = robot_handler.is_robot_online()
+            response.is_navigation_completed = robot_handler.get_navigation_completed()
         return response
-    
-    def _set_initial_pose_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
-        if request.robot_name not in self._robot_dict:
-            self.get_logger().warning(
-                f"Robot {request.robot_name} not found in fleet manager"
-            )
-            response.success = False
-            response.message = f"Robot {request.robot_name} not found in fleet manager"
-            return response
 
-        with self._lock:
-            robot_handler = self._robot_dict[request.robot_name]
-            robot_handler.publish_initial_pose()
-            response.success = True
-            response.message = f"Initial pose set for robot {request.robot_name}"
-        return response
+    def _initial_pose_timer_callback(self):
+        initial_pose_published = True
+        for robot_handler in self._robot_dict.values():
+            initial_pose_published = initial_pose_published and robot_handler.publish_initial_pose()
+        if initial_pose_published:
+            self._timer.cancel()
 
 
 def main(argv=sys.argv):

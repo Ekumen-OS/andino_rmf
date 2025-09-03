@@ -26,7 +26,8 @@ from tf_transformations import quaternion_from_euler
 class ReturnFlag(Enum):
     SUCCESS = 0
     ROBOT_OFFLINE = 1
-
+    UNINITIALIZED_GOAL_HANDLE = 2
+    NO_SUBSCRIBERS = 3
 
 class RobotHandler:
     def __init__(
@@ -47,46 +48,51 @@ class RobotHandler:
         self.current_pose: PoseWithCovarianceStamped = None
         self._reset_navigation_data()
 
-        # Create a publisher for the initial pose.
-        # It's important this publisher is a member of the class so it's not
-        # garbage-collected immediately after publishing.
+        self.initialize_publishers_and_subscribers(pose_callback_group)
+
+        self.initialize_actions(goal_callback_group)
+
+        self.current_pose = self._get_initial_pose_msg(self.initial_pose)
+
+        self.node.get_logger().info(f"RobotHandler initialized for robot {robot_name}")
+
+    def initialize_publishers_and_subscribers(self, callback_group: MutuallyExclusiveCallbackGroup):
+        # Publisher for the initial pose
         qos_profile = QoSProfile(
             reliability=ReliabilityPolicy.RELIABLE,
             durability=DurabilityPolicy.TRANSIENT_LOCAL,
             history=HistoryPolicy.KEEP_LAST,
             depth=1
         )
-        initial_pose_topic = "/" + robot_name + "/initialpose"
+        initial_pose_topic = "/" + self.robot_name + "/initialpose"
         self.initial_pose_publisher = self.node.create_publisher(
             PoseWithCovarianceStamped, initial_pose_topic, qos_profile)
 
-        # Create a subscriber to the robot's pose updates
-        topic_name = "/" + robot_name + "/amcl_pose"
+        # Subscriber to the robot's pose updates
+        topic_name = "/" + self.robot_name + "/amcl_pose"
         self.pose_subscriber = self.node.create_subscription(
             PoseWithCovarianceStamped,
             topic_name,
             self._pose_callback,
             10,
-            callback_group=pose_callback_group,
+            callback_group=callback_group,
         )
 
-        self.current_pose = self._get_initial_pose_msg(self.initial_pose)
-
-        # Create an action client for sending navigation goals to the robot
-        action_name = "/" + robot_name + "/navigate_to_pose"
+    def initialize_actions(self, callback_group: MutuallyExclusiveCallbackGroup):
+        # Action client for sending navigation goals to the robot
+        action_name = "/" + self.robot_name + "/navigate_to_pose"
         self._controller_client = ActionClient(
-            self.node, NavigateToPose, action_name, callback_group=goal_callback_group
+            self.node, NavigateToPose, action_name, callback_group=callback_group
         )
 
-        self.node.get_logger().info(f"RobotHandler initialized for robot {robot_name}")
-
-    def publish_initial_pose(self) -> bool:
+    def publish_initial_pose(self) -> ReturnFlag:
         if self.initial_pose_publisher.get_subscription_count() == 0:
-            return False
+            self.node.get_logger().debug(f"Initial pose could not be published for robot {self.robot_name} because there are no subscribers for the topic")
+            return ReturnFlag.NO_SUBSCRIBERS
         initial_pose_msg = self._get_initial_pose_msg(self.initial_pose)
         self.node.get_logger().info(f"Publishing initial pose for {self.robot_name}")
         self.initial_pose_publisher.publish(initial_pose_msg)
-        return True
+        return ReturnFlag.SUCCESS
 
     def _get_initial_pose_msg(self, initial_pose: dict) -> PoseWithCovarianceStamped:
         initial_pose_msg = PoseWithCovarianceStamped()
@@ -114,8 +120,11 @@ class RobotHandler:
         initial_pose_msg.pose.covariance[35] = 0.06853891945200942 # variance for yaw
         return initial_pose_msg
 
-    def is_robot_online(self) -> bool:
-        return self._controller_client.wait_for_server(timeout_sec=1.0)
+    def is_robot_online(self) -> ReturnFlag:
+        if self._controller_client.wait_for_server(timeout_sec=1.0):
+            return ReturnFlag.SUCCESS
+        return ReturnFlag.ROBOT_OFFLINE
+
 
     def _pose_callback(self, msg: PoseWithCovarianceStamped):
         with self._lock:
@@ -144,7 +153,6 @@ class RobotHandler:
         send_goal_future.add_done_callback(self._goal_response_callback)
         return ReturnFlag.SUCCESS
 
-
     def _feedback_callback(self, feedback_msg : PoseStamped):
         feedback = feedback_msg.feedback
         self.current_pose.header = feedback.current_pose.header
@@ -157,7 +165,7 @@ class RobotHandler:
     def _goal_response_callback(self, future: Future):
         self._goal_handle = future.result()
         if not self._goal_handle.accepted:
-            self.node.get_logger().info("Goal rejected")
+            self.node.get_logger().info(f"Goal rejected")
             return
 
         self.node.get_logger().info("Goal accepted")
@@ -166,7 +174,6 @@ class RobotHandler:
         self._get_result_future.add_done_callback(self._get_result_callback)
 
     def _get_result_callback(self, future : Future):
-        result = future.result().result
         if self._goal_handle.status == GoalStatus.STATUS_CANCELED:
             self._navigation_completed = False
             return
@@ -175,14 +182,18 @@ class RobotHandler:
         self.node.get_logger().info(f"Goal completed")
 
 
-    def cancel_goal(self, robot_name: str):
+    def cancel_goal(self) -> ReturnFlag:
+       if not self.is_robot_online():
+            return ReturnFlag.ROBOT_OFFLINE
+       if self._goal_handle is None:
+            return ReturnFlag.UNINITIALIZED_GOAL_HANDLE
        future = self._goal_handle.cancel_goal_async()
        future.add_done_callback(self._cancel_response_callback)
-
+       self._reset_navigation_data()
+       return ReturnFlag.SUCCESS
 
     def _cancel_response_callback(self, future: Future):
-       cancel_response = future.result()
-       self._navigation_completed = False
+       self._reset_navigation_data()
 
     def _reset_navigation_data(self):
         self._navigation_completed = False

@@ -67,29 +67,29 @@ robots:
       charger:
         waypoint: "spawn_robot2"
   # Configuration for third robot in this fleet
-  # andino3:
-  #   robot_config:
-  #     max_delay: 15.0 # allowed seconds of delay of the current itinerary before it gets interrupted and replanned
-  #   rmf_config:
-  #     robot_state_update_frequency: 0.5
-  #     start:
-  #       map_name: "L1"
-  #       waypoint: "spawn_robot3"
-  #       orientation: 0.0 # radians
-  #     charger:
-  #       waypoint: "spawn_robot3"
-  # # Configuration for fourth robot in this fleet
-  # andino4:
-  #   robot_config:
-  #     max_delay: 15.0 # allowed seconds of delay of the current itinerary before it gets interrupted and replanned
-  #   rmf_config:
-  #     robot_state_update_frequency: 0.5
-  #     start:
-  #       map_name: "L1"
-  #       waypoint: "spawn_robot4"
-  #       orientation: 0.0 # radians
-  #     charger:
-  #       waypoint: "spawn_robot4"
+  andino3:
+    robot_config:
+      max_delay: 15.0 # allowed seconds of delay of the current itinerary before it gets interrupted and replanned
+    rmf_config:
+      robot_state_update_frequency: 0.5
+      start:
+        map_name: "L1"
+        waypoint: "spawn_robot3"
+        orientation: 0.0 # radians
+      charger:
+        waypoint: "spawn_robot3"
+  # Configuration for fourth robot in this fleet
+  andino4:
+    robot_config:
+      max_delay: 15.0 # allowed seconds of delay of the current itinerary before it gets interrupted and replanned
+    rmf_config:
+      robot_state_update_frequency: 0.5
+      start:
+        map_name: "L1"
+        waypoint: "spawn_robot4"
+        orientation: 0.0 # radians
+      charger:
+        waypoint: "spawn_robot4"
 # TRANSFORM CONFIG =============================================================
 # For computing transforms between Robot and RMF coordinate systems
 

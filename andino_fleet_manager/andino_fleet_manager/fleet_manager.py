@@ -93,8 +93,22 @@ class AndinoFleetManager(Node):
         return response
 
     def _cancel_goal_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
-        self.get_logger().info(f"Cancelling goal for robot {request.robot_name}")
+        if request.robot_name not in self._robot_dict:
+            self.get_logger().warning(
+                f"Robot {request.robot_name} not found in fleet manager"
+            )
+            response.result = False
+            return response
 
+        with self._lock:
+            robot_handler = self._robot_dict[request.robot_name]
+            cancel_goal_return = robot_handler.cancel_goal()
+            if cancel_goal_return == ReturnFlag.ROBOT_OFFLINE:
+                self.get_logger().debug(
+                    f"Robot {request.robot_name} is offline. Cannot cancel goal."
+                )
+                response.result = False
+                return response
         response.result = True
         return response
 
@@ -130,7 +144,7 @@ class AndinoFleetManager(Node):
             ]
             response.max_lin_velocity = 1.0
             response.distance_remaining = robot_handler.get_distance_remaining()
-            response.is_robot_connected = robot_handler.is_robot_online()
+            response.is_robot_connected = robot_handler.is_robot_online() == ReturnFlag.SUCCESS
             response.is_navigation_completed = robot_handler.get_navigation_completed()
         return response
 
@@ -138,7 +152,7 @@ class AndinoFleetManager(Node):
         initial_pose_published = True
         for robot_handler in self._robot_dict.values():
             initial_pose_published = initial_pose_published and robot_handler.publish_initial_pose()
-        if initial_pose_published:
+        if initial_pose_published == ReturnFlag.SUCCESS:
             self._timer.cancel()
 
 
@@ -167,7 +181,6 @@ def main(argv=sys.argv):
     executor.add_node(fleet_manager)
 
     try:
-        fleet_manager.get_logger().info("Fleet manager executor spinning...")
         executor.spin()
     except KeyboardInterrupt:
         fleet_manager.destroy_node()

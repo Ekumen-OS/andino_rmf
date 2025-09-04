@@ -59,7 +59,6 @@ class RobotAPI:
 
     def check_connection(self):
         ''' Return True if connection to the robot API server is successful'''
-
         while not (self._send_goal_client.wait_for_service(timeout_sec=1.0) and self._cancel_goal_client.wait_for_service(timeout_sec=1.0)):
             self.node.get_logger().info('Fleet manager not available. Waiting again...')
         return True
@@ -85,7 +84,6 @@ class RobotAPI:
         and theta are in the robot's coordinate convention. This function
         should return True if the robot has accepted the request,
         else False"""
-
         self.node.get_logger().info(f"[{robot_name}] Navigating to pose: {pose}")
 
         # Cancel current goal if any
@@ -118,7 +116,6 @@ class RobotAPI:
     def stop(self, robot_name: str):
         """Request the robot to stop.
         Return True if the robot has accepted the request, else False"""
-
         self.node.get_logger().info(f"[{robot_name}] Stopping robot")
 
         cancel_goal_req = CancelGoal.Request()
@@ -135,7 +132,6 @@ class RobotAPI:
     def navigation_remaining_duration(self, robot_name: str):
         ''' Return the number of seconds remaining for the robot to reach its
             destination'''
-
         robot_state_req = RequestRobotPosition.Request()
         robot_state_req.robot_name = robot_name
         future = self._robot_state_client.call_async(robot_state_req)
@@ -163,7 +159,6 @@ class RobotAPI:
         if resp.is_robot_connected is False:
             self.node.get_logger().warning(f'{robot_name} is not online!')
             return False
-
         return resp.is_navigation_completed
 
     def process_completed(self, robot_name: str):

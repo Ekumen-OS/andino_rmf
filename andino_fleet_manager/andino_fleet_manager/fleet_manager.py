@@ -85,7 +85,6 @@ class AndinoFleetManager(Node):
         self._robot_state_client = self.create_service(
             RequestRobotPosition, "/robot_pose_server", self._robot_pose_callback
         )
-        self._timer = self.create_timer(1.0, self._initial_pose_timer_callback)
 
     def _send_goal_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
         if request.robot_name not in self._robot_dict:
@@ -168,7 +167,7 @@ class AndinoFleetManager(Node):
         for robot_handler in self._robot_dict.values():
             initial_pose_published = initial_pose_published and robot_handler.publish_initial_pose()
         if initial_pose_published == ReturnFlag.SUCCESS:
-            self._timer.cancel()
+            self._initial_pose_timer.cancel()
 
 
 def main(argv=sys.argv):

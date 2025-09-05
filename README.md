@@ -3,16 +3,15 @@
 <img src="docs/andino_rmf.png"/>
 
 This package intends to utilize OpenRMF to send a high-level task planning to [Andino](https://github.com/Ekumen-OS/andino) robot fleet. To achieve this goal, three main developments are included as the following.
-  - [Controller server](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/main/andino_fleet/README.md#controller-server) for an Andino robot
-  - [Fleet manager](https://github.com/ekumenlabs/andino_fleet_open_rmf/blob/main/andino_fleet/README.md#fleet-manager) to manage multiple robots
-  - [Fleet adapter](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/andino_fleet_adapter) to bridge a fleet manager with OpenRMF API
-  - [RMF map](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/andino_rmf_maps) to contains map files required by RMF navigation
-  - [RMF sim](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/andino_rmf_sim) to launch everything
+  - [Fleet manager](https://github.com/Ekumen-OS/andino_rmf/tree/camistolo/humble_nav2/andino_fleet_manager) to manage multiple robots
+  - [Fleet adapter](https://github.com/Ekumen-OS/andino_rmf/tree/camistolo/humble_nav2/andino_fleet_adapter) to bridge a fleet manager with OpenRMF API
+  - [RMF map](https://github.com/Ekumen-OS/andino_rmf/tree/camistolo/humble_nav2/andino_rmf_maps) to contains map files required by RMF navigation
+  - [RMF sim](https://github.com/Ekumen-OS/andino_rmf/tree/camistolo/humble_nav2/andino_rmf_sim) to launch everything
 
 ## Project dependencies
 - <b>ROS 2</b>: Humble Hawksbill
 - <b>OS</b>: Ubuntu 22.04 Jammy Jellyfish
-- <b>Simulation</b>: 
+- <b>Simulation</b>:
     - [andino_gz](https://github.com/Ekumen-OS/andino_gz/tree/humble?tab=readme-ov-file): a simulation environment for [Andino](https://github.com/Ekumen-OS/andino) in Gazebo Fortress
 - <b>Task Planning</b>:
   - [OpenRMF](https://github.com/open-rmf/rmf) : The Open-RMF platform for multi-fleet robot management

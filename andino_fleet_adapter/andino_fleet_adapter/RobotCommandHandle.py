@@ -103,7 +103,7 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
         self._quit_path_event = threading.Event()
         self._dock_thread = None
         self._quit_dock_event = threading.Event()
-        
+
         self.node.get_logger().info(
             f" {self.name} | The robot is starting at: [{self.position[0]:.2f}, "
             f"{self.position[1]:.2f}, {self.position[2]:.2f}]")

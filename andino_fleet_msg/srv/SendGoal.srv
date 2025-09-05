@@ -1,6 +1,7 @@
 # request service message to send a goal of robot_name
 # it assumes that the goal is already fed to the manager by add_goal service
 string robot_name
+float64[] final_pose
 ---
 # result whether the goal is sent successfully
 bool result

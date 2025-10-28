@@ -44,6 +44,7 @@ class RobotHandler:
         self.robot_name = robot_name
         self._lock = lock
 
+        self.initial_pose_published = False
         self.initial_pose = initial_pose
         self._goal_handle: ClientGoalHandle = None
         self.current_pose: PoseWithCovarianceStamped = None
@@ -86,14 +87,14 @@ class RobotHandler:
             self.node, NavigateToPose, action_name, callback_group=callback_group
         )
 
-    def publish_initial_pose(self) -> ReturnFlag:
+    def publish_initial_pose(self) -> None:
         if self.initial_pose_publisher.get_subscription_count() == 0:
             self.node.get_logger().debug(f"Initial pose could not be published for robot {self.robot_name} because there are no subscribers for the topic")
-            return ReturnFlag.NO_SUBSCRIBERS
+            return
         initial_pose_msg = self._get_initial_pose_msg(self.initial_pose)
         self.node.get_logger().info(f"Publishing initial pose for {self.robot_name}")
         self.initial_pose_publisher.publish(initial_pose_msg)
-        return ReturnFlag.SUCCESS
+        self.initial_pose_published = True
 
     def _get_initial_pose_msg(self, initial_pose: dict) -> PoseWithCovarianceStamped:
         initial_pose_msg = PoseWithCovarianceStamped()
@@ -119,6 +120,7 @@ class RobotHandler:
         initial_pose_msg.pose.covariance[0] = 0.25  # variance for x
         initial_pose_msg.pose.covariance[7] = 0.25  # variance for y
         initial_pose_msg.pose.covariance[35] = 0.06853891945200942 # variance for yaw
+
         return initial_pose_msg
 
     def is_robot_online(self) -> ReturnFlag:
@@ -138,7 +140,7 @@ class RobotHandler:
         self._reset_navigation_data()
 
         goal_msg = NavigateToPose.Goal()
-        goal_msg.pose.header.frame_id = "map"
+        goal_msg.pose.header.frame_id = "odom"
         goal_msg.pose.pose.position.x = goal[0]
         goal_msg.pose.pose.position.y = goal[1]
 

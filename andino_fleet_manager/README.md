@@ -28,18 +28,6 @@ The fleet manager node has the following features implemented:
 - Use [custom service messages](https://github.com/Ekumen-OS/andino_rmf/tree/camistolo/humble_nav2/andino_fleet_msg/srv) for service interface
 - Be able to get states of each robot
 
-## Usage
-To launch multiple robots with corresponding controller servers,
-
-```
-ros2 launch andino_fleet_manager spawn_multiple_robot.launch.py
-```
-
-<img src="../resources/multi_robot.png" alt="Multi-robot simulation" title="Multi-robot simulation" width="300"/>
-
-*<b>Note: </b> To add/remove robot(s), edit <b>spawn_robots.yaml</b> under <b>[andino_fleet/config](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/andino_fleet/config)</b> folder. There are four robots by default.*
-*<b>Note: </b> To add/remove robot(s), edit <b>spawn_robots.yaml</b> under <b>[andino_fleet/config](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/andino_fleet/config)</b> folder. There are four robots by default.*
-
 To run the implemented fleet manager,
 
 ```

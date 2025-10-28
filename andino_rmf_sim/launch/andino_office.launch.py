@@ -8,10 +8,21 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
+
+    simulation_arg = DeclareLaunchArgument(
+        'sim',
+        default_value='False',
+        choices=['True', 'False'],
+        description='If true, the scenario is simulated.',
+    )
+
+    simulation = LaunchConfiguration('sim')
 
     # Include Common launch
     common_launch = IncludeLaunchDescription(
@@ -29,9 +40,10 @@ def generate_launch_description():
     # Include Spawn multiple robot launch
     sim_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('andino_fleet_manager'), 'launch'),
+            os.path.join(get_package_share_directory('andino_rmf_gz'), 'launch'),
             '/spawn_multiple_robot.launch.py'
-        ])
+        ]),
+        condition=IfCondition(simulation)
     )
 
     fleet_manager = IncludeLaunchDescription(
@@ -49,6 +61,7 @@ def generate_launch_description():
     )
 
     ld = LaunchDescription()
+    ld.add_action(simulation_arg)
     ld.add_action(common_launch)
     ld.add_action(sim_launch)
     ld.add_action(fleet_manager)

@@ -17,7 +17,7 @@ def convert_to_text(data: dict):
 
 def generate_launch_description():
     robot_config_name = 'spawn_robots.yaml'
-    robot_config_file_path = os.path.join(get_package_share_directory('andino_fleet_manager'), 'config', robot_config_name)
+    robot_config_file_path = os.path.join(get_package_share_directory('andino_rmf_gz'), 'config', robot_config_name)
     with open(robot_config_file_path,'r') as f:
         robot_config = yaml.load(f, Loader=yaml.SafeLoader)
 

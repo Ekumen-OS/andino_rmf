@@ -140,7 +140,7 @@ class RobotHandler:
         self._reset_navigation_data()
 
         goal_msg = NavigateToPose.Goal()
-        goal_msg.pose.header.frame_id = "odom"
+        goal_msg.pose.header.frame_id = "map"
         goal_msg.pose.pose.position.x = goal[0]
         goal_msg.pose.pose.position.y = goal[1]
 
@@ -171,7 +171,7 @@ class RobotHandler:
             self.node.get_logger().info(f"Goal rejected")
             return
 
-        self.node.get_logger().info("Goal accepted")
+        self.node.get_logger().info(f"Goal accepted: {self.current_pose.pose.pose.position.x}, {self.current_pose.pose.pose.position.y}")
 
         self._get_result_future = self._goal_handle.get_result_async()
         self._get_result_future.add_done_callback(self._get_result_callback)
@@ -182,7 +182,7 @@ class RobotHandler:
             return
         self._distance_remaining = 0.0
         self._navigation_completed = True
-        self.node.get_logger().info(f"Goal completed")
+        self.node.get_logger().info(f"Goal completed: {self.current_pose.pose.pose.position.x}, {self.current_pose.pose.pose.position.y}")
 
 
     def cancel_goal(self) -> ReturnFlag:

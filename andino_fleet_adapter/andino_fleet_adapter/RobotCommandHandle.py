@@ -166,6 +166,11 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
 
         self.node.get_logger().debug(f"[Follow new path] {self.name} | Received new path to follow...")
 
+        self.node.get_logger().info(f"Number of waypoints: {len(waypoints)}")
+        for i, waypoint in enumerate(waypoints):
+            p = waypoint.position
+            self.node.get_logger().info(f"Waypoint {i}: [{p[0]:.2f}, {p[1]:.2f}, {p[2]:.2f}]")
+
         self.remaining_waypoints = self.get_remaining_waypoints(waypoints)
         assert next_arrival_estimator is not None
         assert path_finished_callback is not None
@@ -194,10 +199,11 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                         target_pose[:2])
                     theta = target_pose[2] + \
                         self.transforms['orientation_offset']
-                    self.node.get_logger().debug(f"[Follow new path] {self.name} | State = IDLE")
-                    self.node.get_logger().debug(f"[Follow new path] {self.name} | Current coordinates: X: {x} | Y: {y}")
-
-
+                    self.node.get_logger().info(f"[{self.name}] Next waypoint PRE-TRANSFORM: {target_pose}")
+                    self.node.get_logger().info(f"[{self.name}] Next waypoint POST-TRANSFORM: {[x, y, theta]}")
+                    # ------------------------ #
+                    # IMPLEMENT YOUR CODE HERE #
+                    # Ensure x, y, theta are in units that api.navigate() #
                     # ------------------------ #
                     response = self.api.navigate(self.name,
                                                  [x, y, theta],
@@ -469,3 +475,4 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
         for i in range(len(waypoints)):
             remaining_waypoints.append((i, waypoints[i]))
         return remaining_waypoints
+

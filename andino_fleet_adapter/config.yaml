@@ -93,15 +93,26 @@ robots:
 # TRANSFORM CONFIG =============================================================
 # For computing transforms between Robot and RMF coordinate systems
 
-
 # These values were obtained by checking the position of each robot (andino1, andino2, andino3 and andino4) spawn on the Open
 # RMF map (using traffic editor) and on RMF (andino_office.building.yaml)
 reference_coordinates:
+  # rmf: [
+  #       [16.1414, -10.8811],
+  #       [20.5956, -10.9235],
+  #       [16.1626, -13.8082],
+  #       [20.5320, -13.7870]
+  # ]
+  # rmf: [
+  #       [14.7017, -5.6507],
+  #       [18.9022, -5.6507],
+  #       [14.7017, -8.4510],
+  #       [18.9022, -8.2510]
+  # ]
   rmf: [
-        [16.1414, -10.8811],
-        [20.5956, -10.9235],
-        [16.1626, -13.8082],
-        [20.5320, -13.7870]
+        [14.7103, -5.6540],
+        [18.9133, -5.6540],
+        [14.7103, -8.4559],
+        [18.9133, -8.2558]
   ]
   robot: [
         [-2.1, 4.7],

@@ -1,0 +1,55 @@
+coordinate_system: reference_image
+crowd_sim:
+  agent_groups:
+    - {agents_name: [], agents_number: 0, group_id: 0, profile_selector: external_agent, state_selector: external_static, x: 0, y: 0}
+  agent_profiles:
+    - {ORCA_tau: 1, ORCA_tauObst: 0.40000000000000002, class: 1, max_accel: 0, max_angle_vel: 0, max_neighbors: 10, max_speed: 0, name: external_agent, neighbor_dist: 5, obstacle_set: 1, pref_speed: 0, r: 0.25}
+  enable: 0
+  goal_sets: []
+  model_types: []
+  obstacle_set: {class: 1, file_name: L1_navmesh.nav, type: nav_mesh}
+  states:
+    - {final: 1, goal_set: -1, name: external_static, navmesh_file_name: ""}
+  transitions: []
+  update_time_step: 0.10000000000000001
+graphs:
+  {}
+levels:
+  L1:
+    drawing:
+      filename: office.png
+    elevation: 0
+    lanes:
+      - [2, 3, {bidirectional: [4, true], demo_mock_floor_name: [1, ""], demo_mock_lift_name: [1, ""], graph_idx: [2, 0], orientation: [1, ""], speed_limit: [3, 0]}]
+      - [3, 4, {bidirectional: [4, true], demo_mock_floor_name: [1, ""], demo_mock_lift_name: [1, ""], graph_idx: [2, 0], orientation: [1, ""], speed_limit: [3, 0]}]
+      - [4, 5, {bidirectional: [4, true], demo_mock_floor_name: [1, ""], demo_mock_lift_name: [1, ""], graph_idx: [2, 0], orientation: [1, ""], speed_limit: [3, 0]}]
+      - [5, 6, {bidirectional: [4, true], demo_mock_floor_name: [1, ""], demo_mock_lift_name: [1, ""], graph_idx: [2, 0], orientation: [1, ""], speed_limit: [3, 0]}]
+      - [7, 8, {bidirectional: [4, true], demo_mock_floor_name: [1, ""], demo_mock_lift_name: [1, ""], graph_idx: [2, 0], orientation: [1, ""], speed_limit: [3, 0]}]
+      - [8, 9, {bidirectional: [4, true], demo_mock_floor_name: [1, ""], demo_mock_lift_name: [1, ""], graph_idx: [2, 0], orientation: [1, ""], speed_limit: [3, 0]}]
+      - [9, 10, {bidirectional: [4, true], demo_mock_floor_name: [1, ""], demo_mock_lift_name: [1, ""], graph_idx: [2, 0], orientation: [1, ""], speed_limit: [3, 0]}]
+    layers:
+      scan:
+        color: [1, 0, 0, 0.5]
+        filename: office_map.png
+        transform:
+          scale: 0.050000000000000003
+          translation_x: 0
+          translation_y: 0
+          yaw: 0
+        visible: true
+    measurements:
+      - [0, 1, {distance: [3, 4.2000000000000002]}]
+    vertices:
+      - [553.48000000000002, 195.28700000000001, 0, ""]
+      - [637.41700000000003, 195.404, 0, ""]
+      - [289.89800000000002, 165.64099999999999, 0, spawn_robot3]
+      - [305.72800000000001, 165.64099999999999, 0, ""]
+      - [305.72800000000001, 114.289, 0, ""]
+      - [289.89800000000002, 114.289, 0, spawn_robot1]
+      - [289.89800000000002, 65.251999999999995, 0, ""]
+      - [382.94999999999999, 111.97199999999999, 0, spawn_robot2]
+      - [367.892, 111.97199999999999, 0, ""]
+      - [367.892, 166.41399999999999, 0, ""]
+      - [381.40600000000001, 166.41399999999999, 0, spawn_robot4]
+lifts: {}
+name: office

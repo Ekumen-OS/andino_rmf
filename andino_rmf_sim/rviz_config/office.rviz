@@ -1,6 +1,6 @@
 Panels:
   - Class: rviz_common/Displays
-    Help Height: 93
+    Help Height: 138
     Name: Displays
     Property Tree Widget:
       Expanded:
@@ -11,10 +11,8 @@ Panels:
         - /Map1/Topic1
         - /MarkerArray4
         - /MarkerArray4/Topic1
-        - /post_andino41
-        - /pre_andino41
       Splitter Ratio: 0.5
-    Tree Height: 576
+    Tree Height: 526
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -61,12 +59,8 @@ Visualization Manager:
       Namespaces:
         participant 0: true
         participant 1: true
-        participant 2: true
-        participant 3: true
         participant location 0: true
         participant location 1: true
-        participant location 2: true
-        participant location 3: true
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -135,166 +129,6 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /building_systems_markers
       Value: true
-    - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.10000000149011612
-      Class: rviz_default_plugins/Pose
-      Color: 255; 25; 0
-      Enabled: true
-      Head Length: 0.5
-      Head Radius: 0.30000001192092896
-      Name: post_andino1
-      Shaft Length: 1.5
-      Shaft Radius: 0.10000000149011612
-      Shape: Arrow
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /andino1/post_transform_waypoint
-      Value: true
-    - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.10000000149011612
-      Class: rviz_default_plugins/Pose
-      Color: 170; 0; 0
-      Enabled: true
-      Head Length: 0.5
-      Head Radius: 0.30000001192092896
-      Name: pre_andino1
-      Shaft Length: 1.5
-      Shaft Radius: 0.10000000149011612
-      Shape: Arrow
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /andino1/pre_transform_waypoint
-      Value: true
-    - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.10000000149011612
-      Class: rviz_default_plugins/Pose
-      Color: 0; 255; 255
-      Enabled: true
-      Head Length: 0.5
-      Head Radius: 0.30000001192092896
-      Name: post_andino2
-      Shaft Length: 1.5
-      Shaft Radius: 0.10000000149011612
-      Shape: Arrow
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /andino2/post_transform_waypoint
-      Value: true
-    - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.10000000149011612
-      Class: rviz_default_plugins/Pose
-      Color: 0; 0; 255
-      Enabled: true
-      Head Length: 0.5
-      Head Radius: 0.30000001192092896
-      Name: pre_andino2
-      Shaft Length: 1.5
-      Shaft Radius: 0.10000000149011612
-      Shape: Arrow
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /andino2/pre_transform_waypoint
-      Value: true
-    - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.10000000149011612
-      Class: rviz_default_plugins/Pose
-      Color: 255; 170; 255
-      Enabled: true
-      Head Length: 0.5
-      Head Radius: 0.30000001192092896
-      Name: post_andino3
-      Shaft Length: 1.5
-      Shaft Radius: 0.10000000149011612
-      Shape: Arrow
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /andino3/post_transform_waypoint
-      Value: true
-    - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.10000000149011612
-      Class: rviz_default_plugins/Pose
-      Color: 170; 0; 127
-      Enabled: true
-      Head Length: 0.5
-      Head Radius: 0.30000001192092896
-      Name: pre_andino3
-      Shaft Length: 1.5
-      Shaft Radius: 0.10000000149011612
-      Shape: Arrow
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /andino3/pre_transform_waypoint
-      Value: true
-    - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.10000000149011612
-      Class: rviz_default_plugins/Pose
-      Color: 170; 170; 255
-      Enabled: true
-      Head Length: 0.5
-      Head Radius: 0.30000001192092896
-      Name: post_andino4
-      Shaft Length: 1.5
-      Shaft Radius: 0.10000000149011612
-      Shape: Arrow
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /andino4/post_transform_waypoint
-      Value: true
-    - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.10000000149011612
-      Class: rviz_default_plugins/Pose
-      Color: 170; 0; 255
-      Enabled: true
-      Head Length: 0.5
-      Head Radius: 0.30000001192092896
-      Name: pre_andino4
-      Shaft Length: 1.5
-      Shaft Radius: 0.10000000149011612
-      Shape: Arrow
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /andino4/pre_transform_waypoint
-      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -348,7 +182,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 33.8870735168457
+      Scale: 33.96009063720703
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz_default_plugins)
       X: 17.49325180053711
@@ -360,7 +194,7 @@ Window Geometry:
   Height: 1016
   Hide Left Dock: false
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd000000040000000000000309000003c9fc020000000afb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed0000039500000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc00000014000002d8000000c700fffffffa000000030100000004fb000000120052004d0046002000500061006e0065006c0000000000ffffffff0000000000000000fb000000120044006f006f007200500061006e0065006c0000000000ffffffff0000000000000000fb00000012004c00690066007400500061006e0065006c0000000000ffffffff0000000000000000fb000000100044006900730070006c0061007900730100000000000002830000015600fffffffb0000001a005300630068006500640075006c006500500061006e0065006c01000002f2000000eb000000e200fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001200530065006c0065006300740069006f006e0000000337000000ad0000005c00ffffff000000010000015f000003e9fc0200000002fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a005600690065007700730000000016000003e9000000a000ffffff0000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007340000014cfc0100000002fb0000000800540069006d00650100000000000004420000000000000000fb0000000800540069006d00650100000000000004500000000000000000000006ab000003c900000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730000000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd000000040000000000000283000003c5fc020000000afb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed0000039500000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc00000016000002d5000000c900fffffffa000000030100000004fb000000120052004d0046002000500061006e0065006c0000000000ffffffff0000000000000000fb000000120044006f006f007200500061006e0065006c0000000000ffffffff0000000000000000fb00000012004c00690066007400500061006e0065006c0000000000ffffffff0000000000000000fb000000100044006900730070006c0061007900730100000000000002830000015600fffffffb0000001a005300630068006500640075006c006500500061006e0065006c01000002f1000000ea000000ea00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001200530065006c0065006300740069006f006e0000000337000000ad0000005c00ffffff000000010000015f000003e9fc0200000002fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a005600690065007700730000000016000003e9000000a400ffffff0000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007340000014cfc0100000002fb0000000800540069006d00650100000000000004420000000000000000fb0000000800540069006d00650100000000000004500000000000000000000004b1000003c500000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730000000000ffffffff0000000000000000
   SchedulePanel:
     collapsed: false
   Selection:
@@ -369,6 +203,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 2490
+  Width: 1850
   X: 70
   Y: 27

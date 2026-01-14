@@ -7,7 +7,6 @@
 #    z:
 #    yaw:
 
-# Take into account that the values for the x, y and z fields depend on the simulation environment.
 andino1:
   x: -2.1
   y: 4.7

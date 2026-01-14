@@ -15,20 +15,11 @@
 from rclpy.duration import Duration
 
 import rmf_adapter as adpt
-import rmf_adapter.plan as plan
-import rmf_adapter.schedule as schedule
-
-from rmf_fleet_msgs.msg import DockSummary
-
-from geometry_msgs.msg import PoseStamped, Quaternion
-
-from tf_transformations import quaternion_from_euler
 
 import numpy as np
 
 import threading
 import math
-import copy
 import enum
 import time
 
@@ -108,11 +99,6 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
         self._dock_thread = None
         self._quit_dock_event = threading.Event()
 
-        self.pre_transform_waypoint_pub = self.node.create_publisher(
-            PoseStamped, f'/{self.name}/pre_transform_waypoint', 10)
-        self.post_transform_waypoint_pub = self.node.create_publisher(
-            PoseStamped, f'/{self.name}/post_transform_waypoint', 10)
-
         self.node.get_logger().info(
             f" {self.name} | The robot is starting at: [{self.position[0]:.2f}, "
             f"{self.position[1]:.2f}, {self.position[2]:.2f}]")
@@ -175,11 +161,6 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
 
         self.node.get_logger().debug(f"[Follow new path] {self.name} | Received new path to follow...")
 
-        self.node.get_logger().info(f"Number of waypoints: {len(waypoints)}")
-        for i, waypoint in enumerate(waypoints):
-            p = waypoint.position
-            self.node.get_logger().info(f"Waypoint {i}: [{p[0]:.2f}, {p[1]:.2f}, {p[2]:.2f}]")
-
         self.remaining_waypoints = self.get_remaining_waypoints(waypoints)
         assert next_arrival_estimator is not None
         assert path_finished_callback is not None
@@ -208,14 +189,10 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                         target_pose[:2])
                     theta = target_pose[2] + \
                         self.transforms['orientation_offset']
-                    self.node.get_logger().info(f"[{self.name}] Next waypoint PRE-TRANSFORM: {target_pose}")
-                    self.node.get_logger().info(f"[{self.name}] Next waypoint POST-TRANSFORM: {[x, y, theta]}")
                     # ------------------------ #
                     # IMPLEMENT YOUR CODE HERE #
                     # Ensure x, y, theta are in units that api.navigate() #
                     # ------------------------ #
-
-                    self._publish_waypoints(target_pose, [x, y, theta])
 
                     response = self.api.navigate(self.name,
                                                  [x, y, theta],
@@ -250,7 +227,6 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                     # Check if we have reached the target
                     self.node.get_logger().debug(f"[Follow new path] {self.name} | State = MOVING")
                     with self._lock:
-                        self._publish_waypoints(target_pose, [x, y, theta])
                         if (self.api.navigation_completed(self.name)):
                             self.node.get_logger().info(
                                 f"Robot [{self.name}] has reached its target "
@@ -303,41 +279,6 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
         self._follow_path_thread = threading.Thread(
             target=_follow_path)
         self._follow_path_thread.start()
-
-    def _publish_waypoints(self, pre_transform_pose, post_transform_pose):
-        now = self.node.get_clock().now().to_msg()
-        # Publish pre-transform waypoint
-        pre_msg = PoseStamped()
-        pre_msg.header.stamp = now
-        pre_msg.header.frame_id = "map"
-        pre_msg.pose.position.x = pre_transform_pose[0]
-        pre_msg.pose.position.y = pre_transform_pose[1]
-        pre_msg.pose.position.z = 0.0
-        pre_msg.pose.orientation = self._yaw_to_quaternion(pre_transform_pose[2])
-        self.pre_transform_waypoint_pub.publish(pre_msg)
-
-        [x, y] = self.transforms["robot_to_rmf"].transform(
-            post_transform_pose[:2])
-        theta = post_transform_pose[2] - \
-            self.transforms['orientation_offset']
-
-        # Publish post-transform waypoint
-        post_msg = PoseStamped()
-        post_msg.header.stamp = now
-        post_msg.header.frame_id = "map"
-        post_msg.pose.position.x = x
-        post_msg.pose.position.y = y
-        post_msg.pose.position.z = 0.0
-        post_msg.pose.orientation = self._yaw_to_quaternion(theta)
-        self.post_transform_waypoint_pub.publish(post_msg)
-
-    def _yaw_to_quaternion(self, yaw):
-        return Quaternion(
-            x=0.0,
-            y=0.0,
-            z=math.sin(yaw / 2.0),
-            w=math.cos(yaw / 2.0)
-        )
 
     def dock(
             self,

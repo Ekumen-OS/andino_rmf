@@ -41,9 +41,9 @@ class RobotAPI:
         # Create an executor for this node to spin service in parallel
         self.executor = rclpy.executors.MultiThreadedExecutor()
         # Initialize fleet manager client to use ROS API
-        self._send_goal_client = self.node.create_client(SendGoal, '/send_goal_server')
-        self._cancel_goal_client = self.node.create_client(CancelGoal, '/cancel_goal_server')
-        self._robot_state_client = self.node.create_client(RequestRobotPosition, '/robot_pose_server')
+        self._send_goal_client = self.node.create_client(SendGoal, '/send_goal_service')
+        self._cancel_goal_client = self.node.create_client(CancelGoal, '/cancel_goal_service')
+        self._robot_state_client = self.node.create_client(RequestRobotPosition, '/robot_pose_service')
 
         # Test connectivity
         connected = self.check_connection()

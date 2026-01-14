@@ -36,9 +36,9 @@ The components communicate with each other using a combination of ROS 2 services
 
 *   **RMF Core to Fleet Adapter**: RMF sends high-level commands (e.g., `follow_new_path`, `dock`) to the Fleet Adapter.
 *   **Fleet Adapter to Fleet Manager**: The Fleet Adapter uses the following ROS 2 services to communicate with the Fleet Manager:
-    *   `/send_goal_server`: To send a navigation goal to a robot.
-    *   `/cancel_goal_server`: To cancel a robot's current goal.
-    *   `/robot_pose_server`: To request the position of a robot.
-*   **Fleet Manager to Robot**: The Fleet Manager (through the Robot Handler) communicates with individual robots using ROS 2 topics and actions. For example, for a robot named `andino1`, the following are used:
+    *   `/send_goal_service`: To send a navigation goal to a robot.
+    *   `/cancel_goal_service`: To cancel a robot's current goal.
+    *   `/robot_pose_service`: To request the position of a robot.
+*   **Fleet Manager to Robot Handler**: The Fleet Manager (through the Robot Handler) communicates with individual robots using ROS 2 topics and actions. For example, for a robot named `andino1`, the following topics are used:
     *   `/andino1/navigate_to_pose`: An action to send a navigation goal to the robot.
     *   `/andino1/amcl_pose`: A topic to receive pose updates from the robot.

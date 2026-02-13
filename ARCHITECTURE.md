@@ -4,7 +4,7 @@ This document outlines the high-level architecture of the Andino RMF integration
 
 ## High-Level Overview
 
-The purpose of this system is to integrate a fleet of Andino robots with the Robot Middleware Framework (RMF). This allows RMF to manage and coordinate the Andino robots for tasks such as navigation and delivery.
+The purpose of this system is to integrate a fleet of Andino robots with the [Robot Middleware Framework (RMF)](https://www.open-rmf.org/). This allows RMF to manage and coordinate the Andino robots for tasks such as navigation and delivery.
 
 The system consists of three main components:
 

@@ -1,10 +1,8 @@
 # Andino Fleet Manager
 
-This document provides details on the configuration, inputs, and outputs of the Andino Fleet Manager.
-
 ## Configuration
 
-The Fleet Manager is configured using a YAML file that specifies the initial pose of each robot in the fleet. An example of this file is `config/spawn_robots.yaml`.
+The Fleet Manager is configured using a YAML file that specifies the initial pose of each robot in the fleet. An example of this file is [robots_initial_pose.yaml](config/robots_initial_pose.yaml).
 
 ## Inputs
 
@@ -23,7 +21,7 @@ The Fleet Manager produces the following outputs:
 
 ---
 
-## Robot Handler
+## Robot Handler ([robot_handler.py](andino_fleet_manager/robot_handler.py))
 
 The Robot Handler is an internal component of the Fleet Manager that manages a single robot in the fleet.
 

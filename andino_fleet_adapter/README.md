@@ -1,7 +1,5 @@
 # Andino Fleet Adapter
 
-This document provides details on the configuration, inputs, and outputs of the Andino Fleet Adapter.
-
 ## Configuration
 
 The Fleet Adapter is configured using the `config.yaml` file. This file contains the following main sections:
@@ -37,11 +35,11 @@ The Fleet Adapter produces the following outputs:
 
 The Andino Fleet Adapter is composed of three main Python objects that work together to integrate the robot fleet with RMF.
 
-### Fleet Adapter (`fleet_adapter.py`)
+### Fleet Adapter ([fleet_adapter.py](andino_fleet_adapter/fleet_adapter.py))
 
 The Fleet Adapter is the central component that connects the robot fleet to the Robotics Middleware Framework (RMF). Its primary responsibilities are:
 
-*   **Initialization**: It reads the main `config.yaml` file to get all the necessary configurations for the fleet and the individual robots.
+*   **Initialization**: It reads the main [config.yaml](config.yaml) file to get all the necessary configurations for the fleet and the individual robots.
 *   **RMF Integration**: It establishes the fleet's presence within RMF, defining its properties like vehicle traits (speed, size), battery system, and capabilities (e.g., performing loops, deliveries, or cleaning tasks).
 *   **Robot Representation**: It creates and manages a `RobotCommandHandle` instance for each robot in the fleet.
 *   **API Abstraction**: It initializes the `RobotAPI` object, which provides a standardized way to communicate with the fleet's specific control system.
@@ -49,7 +47,7 @@ The Fleet Adapter is the central component that connects the robot fleet to the 
 
 In essence, the Fleet Adapter is the main orchestrator that brings all the pieces together to make the fleet operational within an RMF environment.
 
-### Robot Client API (`RobotClientAPI.py`)
+### Robot Client API ([RobotClientAPI.py](andino_fleet_adapter/RobotClientAPI.py))
 
 This class acts as a wrapper for the proprietary API of the robot fleet. Its purpose is to abstract the low-level details of how to communicate with the robots.
 
@@ -59,9 +57,9 @@ This class acts as a wrapper for the proprietary API of the robot fleet. Its pur
     *   `navigate()`: To send a navigation goal.
     *   `stop()`: To halt the robot.
     *   `battery_soc()`: To get the battery's state of charge.
-*   **Customization**: This is the primary file that developers need to modify to integrate a different type of robot fleet, by deifning the API calls.On this project, the communication with the fleet manager is done through ROS 2 service calls.
+*   **Customization**: This is the primary file that developers need to modify to integrate a different type of robot fleet, by defining the API calls. On this project, the communication with the fleet manager is done through ROS 2 service calls.
 
-### Robot Command Handle (`RobotCommandHandle.py`)
+### Robot Command Handle ([RobotCommandHandle.py](andino_fleet_adapter/RobotCommandHandle.py))
 
 This class represents a single robot within the RMF ecosystem. Each robot in the fleet gets its own `RobotCommandHandle` instance.
 

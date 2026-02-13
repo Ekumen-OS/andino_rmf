@@ -8,7 +8,7 @@ The [Fleet Adapter](andino_fleet_adapter/) acts as the bridge between Open RMF a
 
 To begin the implementation for ROS2 Humble, the Open RMF team provides a [fleet adapter template](https://github.com/open-rmf/fleet_adapter_template/tree/humble). This template includes the necessary communication with Open RMF, allowing you to focus on the specific implementation details.
 
-As explained in the [fleet adapter template `README.md`](https://github.com/open-rmf/fleet_adapter_template/blob/b8632e442d9385d836a79bc6e58b9a870544d6a0/README.md), there are two primary areas to configure:
+As explained in the fleet adapter template [`README.md`](https://github.com/open-rmf/fleet_adapter_template/blob/b8632e442d9385d836a79bc6e58b9a870544d6a0/README.md), there are two primary areas to configure:
 
 * Communication with the Fleet Manager
 * Robot Fleet Configuration

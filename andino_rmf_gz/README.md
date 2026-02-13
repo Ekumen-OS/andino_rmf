@@ -1,14 +1,10 @@
 # RMF GZ Package
 This package contains high-level launch files to launch the gazebo system with spawned Andino robots
 
-This package launches the following ...
-- RMF tools *(common.launch.py)*
-- Simulation with spawned robot fleet
-- Fleet manager
-- Fleet adapter
+This package launches the simulation with a spawned robot fleet
 
 ## Usage
-To launch multiple robots with corresponding controller servers,
+To launch multiple robots with corresponding controller servers, run:
 
 ```
 ros2 launch andino_rmf_gz spawn_multiple_robot.launch.py

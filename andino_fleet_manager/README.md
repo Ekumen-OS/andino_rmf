@@ -1,77 +1,52 @@
-# Andino Fleet Manager
+# Andino Fleet Manager Package
+This package consists of the implementation of a fleet manager for Andino robots.
 
-## Configuration
+## Fleet Manager
+### Summary
 
-The Fleet Manager is configured using a YAML file that specifies the initial pose of each robot in the fleet. An example of this file is [robots_initial_pose.yaml](config/robots_initial_pose.yaml).
+The goal of a fleet manager is to manage multiple robots so that it is able to send commands and receive information from each robot.
 
-## Inputs
+### Implementation
+The manager is implemented as a ROS2 node that contains multiple services to control the andino fleet and monitor the robot states. These services include
 
-The Fleet Manager receives commands from the Fleet Adapter via the following ROS 2 services:
+- Sending a goal to the manager
+- Canceling a current goal
+- Reading a robot position
 
-*   `/send_goal_server`: To receive a navigation goal for a specific robot.
-*   `/cancel_goal_server`: To receive a request to cancel a robot's current goal.
-*   `/robot_pose_server`: To receive a request for the position of a specific robot.
+Each service requires a robot name in order to manage individual robots.
 
-## Outputs
+<img src="../resources/fleet_manager_diagram.png" alt="fleet manager diagram" title="fleet manager diagram" width="750">
 
-The Fleet Manager produces the following outputs:
+The fleet manager node has the following features implemented:
 
-*   **Commands to Robots**: The Fleet Manager sends commands to individual robots using ROS 2 topics and actions. For example, for a robot named `andino1`, it uses the `/andino1/navigate_to_pose` action to send a navigation goal.
-*   **Robot State Information**: The Fleet Manager provides robot state information to the Fleet Adapter in response to service calls.
+- Be able to implement relevant services to manage the andino fleet
+- Use [custom service messages](../andino_fleet_msg/srv) for service interface
+- Be able to get states of each robot
 
----
+## Usage
+To launch multiple robots with corresponding controller servers,
 
-## Robot Handler ([robot_handler.py](andino_fleet_manager/robot_handler.py))
+```
+ros2 launch andino_fleet_manager spawn_multiple_robot.launch.py
+```
 
-The Robot Handler is an internal component of the Fleet Manager that manages a single robot in the fleet.
+<img src="../resources/multi_robot.png" alt="Multi-robot simulation" title="Multi-robot simulation" width="300"/>
 
-### Purpose
+*<b>Note: </b> To add/remove robot(s), edit <b>spawn_robots.yaml</b> under <b>[andino_fleet/config](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/andino_fleet/config)</b> folder. There are four robots by default.*
 
-The Robot Handler is responsible for:
+To run the implemented fleet manager,
 
-*   Managing the state of a single robot, including its position and navigation status.
-*   Subscribing to the robot's pose updates.
-*   Sending navigation goals to the robot and managing the goal lifecycle.
+```
+ros2 run andino_fleet_manager fleet_manager
+```
 
-### Inputs
+After the fleet manager node is running, it allows users to interact with the robot fleet as the following.
 
-The Robot Handler receives commands from the Fleet Manager, such as requests to send a goal or cancel a goal.
+### Send a goal
+Start moving a robot by sending a goal to the manager by specifying the robot name and the final pose,
 
-### Outputs
-
-The Robot Handler communicates with the robot using ROS 2 topics and actions. For a robot named `andino1`, it:
-
-*   Subscribes to the `/andino1/amcl_pose` topic to receive pose updates.
-*   Uses the `/andino1/navigate_to_pose` action to send navigation goals to the robot.
-
-## Diagrams
-
-### Object Interaction
-
-This diagram shows the relationship between the Fleet Manager, the Robot Handlers and the robots.
-
-```mermaid
-graph TD
-    subgraph Fleet Manager Node
-        fleet_manager["Fleet Manager"]
-        robot_handler_1["Robot Handler 1"]
-        robot_handler_2["Robot Handler 2"]
-        robot_handler_n["..."]
-    end
-
-    subgraph Robot
-        robot_1["Robot 1"]
-        robot_2["Robot 2"]
-        robot_n["..."]
-    end
-
-    fleet_manager -- "Instantiates & Manages" --> robot_handler_1
-    fleet_manager -- "Instantiates & Manages" --> robot_handler_2
-    fleet_manager -- "Instantiates & Manages" --> robot_handler_n
-
-    robot_handler_1 -- "ROS 2 Actions & Topics" --> robot_1
-    robot_handler_2 -- "ROS 2 Actions & Topics" --> robot_2
-    robot_handler_n -- "..." --> robot_n
+```
+ros2 service call /send_goal_server andino_fleet_msg/srv/SendGoal "{robot_name: 'andino2', final_pose: [0.1,0,0]}"
 ```
 
 ### Navigation Task Sequence

@@ -24,12 +24,13 @@ def generate_launch_description():
     # Convert dictionary to text for using as a spawning argument
     robot_config_txt = convert_to_text(robot_config)
 
-    # This line runs the andino_gz package with:
-    # - robot config file with initial poses
-    # - rviz set to True so it is started
-    # - World and map used for gazebo and nav2
-    # - nav2 set to True to start nav2 as controller
-    # - autostart set to True so gazebo starts automatically
+    # Launches the andino_gz simulation environment with the following configurations:
+    # - robots: Specifies the initial poses for multiple robots from the config file.
+    # - rviz: Enables the RViz visualization tool.
+    # - world_name: Sets the Gazebo world to 'office.sdf'.
+    # - map: Provides the 'office' map for Nav2.
+    # - nav2: Enables Nav2 for robot navigation and control.
+    # - autostart: Automatically starts the Gazebo simulation.
     robots = ExecuteProcess(
         cmd=[[
             'ros2 launch andino_gz andino_gz.launch.py ',

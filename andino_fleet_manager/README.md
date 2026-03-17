@@ -1,5 +1,5 @@
 # Andino Fleet Manager Package
-This package consists of the implementation of a controller server and a fleet manager for Andino robots.
+This package consists of the implementation of a fleet manager for Andino robots.
 
 ## Fleet Manager
 ### Summary
@@ -20,7 +20,7 @@ Each service requires a robot name in order to manage individual robots.
 The fleet manager node has the following features implemented:
 
 - Be able to implement relevant services to manage the andino fleet
-- Use [custom service messages](https://github.com/Ekumen-OS/andino_rmf/tree/camistolo/humble_nav2/andino_fleet_msg/srv) for service interface
+- Use [custom service messages](../andino_fleet_msg/srv) for service interface
 - Be able to get states of each robot
 
 ## Usage

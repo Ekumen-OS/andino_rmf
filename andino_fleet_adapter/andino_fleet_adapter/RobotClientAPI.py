@@ -111,10 +111,7 @@ class RobotAPI:
 
         self.executor.spin_until_future_complete(future)
         resp = future.result()
-        if resp.result == True:
-            return True
-
-        return False
+        return resp.result
 
     def navigation_remaining_duration(self, robot_name: str):
         ''' Return the number of seconds remaining for the robot to reach its

@@ -171,7 +171,6 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
         assert path_finished_callback is not None
         self.next_arrival_estimator = next_arrival_estimator
         self.path_finished_callback = path_finished_callback
-        self.node.get_logger().debug(f'[Follow new path] {self.name} | Remaining waypoints {self.remaining_waypoints}')
 
         def _follow_path():
             target_pose = []
@@ -195,9 +194,6 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                         target_pose[:2])
                     theta = target_pose[2] + \
                         self.transforms['orientation_offset']
-                    # ------------------------ #
-                    # IMPLEMENT YOUR CODE HERE #
-                    # Ensure x, y, theta are in units that api.navigate() #
                     self.node.get_logger().debug(f"[Follow new path] {self.name} | State = IDLE")
                     self.node.get_logger().debug(f"[Follow new path] {self.name} | Current coordinates: X: {x} | Y: {y}")
 
@@ -268,12 +264,6 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                                     self.on_lane = None  # update_off_grid()
                                     self.on_waypoint = None
 
-                        # ------------------------ #
-                        # IMPLEMENT YOUR CODE HERE #
-                        # If your robot does not have an API to report the
-                        # remaining travel duration, replace the API call
-                        # below with an estimation
-                        # ------------------------ #
                         duration = self.api.navigation_remaining_duration(self.name)
                         self.node.get_logger().debug(f"[Follow new path] {self.name} | Remaining duration: {duration}")
                         if self.path_index is not None:
@@ -323,10 +313,6 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                 self.on_waypoint = None
                 self.on_lane = None
             self.sleep_for(0.1)
-            # ------------------------ #
-            # IMPLEMENT YOUR CODE HERE #
-            # With whatever logic you need for docking #
-            # ------------------------ #
             while (not self.api.docking_completed(self.name)):
                 # Check if we need to abort
                 if self._quit_dock_event.is_set():
@@ -353,10 +339,6 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                 [position[0], position[1]])
             theta = math.radians(position[2]) - \
                 self.transforms['orientation_offset']
-            # ------------------------ #
-            # IMPLEMENT YOUR CODE HERE #
-            # Ensure x, y are in meters and theta in radians #
-            # ------------------------ #
             # Wrap theta between [-pi, pi]. Else arrival estimate will
             # assume robot has to do full rotations and delay the schedule
             if theta > np.pi:

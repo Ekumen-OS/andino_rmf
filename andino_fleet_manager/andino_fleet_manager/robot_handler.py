@@ -31,6 +31,13 @@ class ReturnFlag(Enum):
 
 
 class RobotHandler:
+    VAR_XY = 0.25
+    VAR_YAW = 0.0685
+    
+    IDX_X = 0
+    IDX_Y = 7
+    IDX_YAW = 35
+
     def __init__(
         self,
         node: Node,
@@ -116,9 +123,9 @@ class RobotHandler:
         # The covariance matrix is a 6x6 matrix stored as a 36-element array.
         # The diagonal elements correspond to variance in x, y, z, roll, pitch, yaw.
         # Covariance[0] is variance for x, [7] is for y, [14] for z, etc.
-        initial_pose_msg.pose.covariance[0] = 0.25  # variance for x
-        initial_pose_msg.pose.covariance[7] = 0.25  # variance for y
-        initial_pose_msg.pose.covariance[35] = 0.06853891945200942 # variance for yaw
+        initial_pose_msg.pose.covariance[self.IDX_X] = self.VAR_XY
+        initial_pose_msg.pose.covariance[self.IDX_Y] = self.VAR_XY
+        initial_pose_msg.pose.covariance[self.IDX_YAW] = self.VAR_YAW
         return initial_pose_msg
 
     def is_robot_online(self) -> ReturnFlag:

@@ -4,14 +4,14 @@ This document outlines a series of tests to verify the functionality of the Andi
 
 ## Prerequisites
 
-Before running any tests, ensure the simulation environment is running. Open a terminal and execute:
+First of all, the docker container needs to be running. To achieve this, follow the instructions on the installation and package sections of the [README](README.md) file
 
 ```bash
 source install/setup.bash
 ros2 launch andino_rmf andino_office.launch.py
 ```
 
-All subsequent test commands should be run in a new, separate terminal.
+All subsequent test commands should be run in a new, separate terminal. To start a new terminal inside the docker container, use the [join.sh](docker/join.sh) script inside the docker folder.
 
 ---
 

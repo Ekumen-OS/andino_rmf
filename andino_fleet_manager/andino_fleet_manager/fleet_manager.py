@@ -165,8 +165,11 @@ class AndinoFleetManager(Node):
     def _initial_pose_timer_callback(self):
         initial_pose_published = True
         for robot_handler in self._robot_dict.values():
-            initial_pose_published = initial_pose_published and robot_handler.publish_initial_pose()
-        if initial_pose_published == ReturnFlag.SUCCESS:
+            if not robot_handler.initial_pose_published:
+                robot_handler.publish_initial_pose()
+                all_initial_poses_published = all_initial_poses_published and robot_handler.initial_pose_published
+        # Only cancel the timer when all initial poses have been published on the robots
+        if all_initial_poses_published:
             self._initial_pose_timer.cancel()
 
 

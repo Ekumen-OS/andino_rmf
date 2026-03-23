@@ -8,10 +8,9 @@ The goal of a fleet manager is to manage multiple robots so that it is able to s
 
 ### Implementation
 The manager is implemented as a ROS2 node that contains multiple services to control the andino fleet and monitor the robot states. These services include
-
-- Sending a goal to the manager
-- Canceling a current goal
-- Reading a robot position
+- send a goal to the manager
+- cancel a current goal
+- read a robot position
 
 Each service requires a robot name in order to manage individual robots.
 
@@ -26,47 +25,41 @@ The fleet manager node has the following features implemented:
 ## Usage
 To launch multiple robots with corresponding controller servers,
 
-```
-ros2 launch andino_fleet_manager spawn_multiple_robot.launch.py
+```bash
+ros2 launch andino_rmf_gz spawn_multiple_robot.launch.py
 ```
 
 <img src="../resources/multi_robot.png" alt="Multi-robot simulation" title="Multi-robot simulation" width="300"/>
 
-*<b>Note: </b> To add/remove robot(s), edit <b>spawn_robots.yaml</b> under <b>[andino_fleet/config](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/andino_fleet/config)</b> folder. There are four robots by default.*
+*<b>Note: </b> To add/remove robot(s), edit <b>spawn_robots.yaml</b> under <b>[andino_rmf_gz/config](https://github.com/ekumenlabs/andino_fleet_open_rmf/tree/main/andino_rmf_gz/config)</b> folder. There are four robots by default.*
 
 To run the implemented fleet manager,
 
-```
-ros2 run andino_fleet_manager fleet_manager
+```bash
+ros2 launch andino_fleet_manager andino_fleet_manager.launch.py
 ```
 
-After the fleet manager node is running, it allows users to interact with the robot fleet as the following.
+## Local Development (Manual Service Interaction)
+
+After the fleet manager node is running, it allows users to interact with the robot fleet through ROS 2 services. These examples can be used for development and testing purposes.
 
 ### Send a goal
-Start moving a robot by sending a goal to the manager by specifying the robot name and the final pose,
+Start moving a robot by sending a goal to the manager, specifying the robot name and the target pose [x, y, yaw].
 
+```bash
+ros2 service call /send_goal_service andino_fleet_msg/srv/SendGoal "{robot_name: 'andino2', final_pose: [0.1, 0.0, 0.0]}"
 ```
-ros2 service call /send_goal_server andino_fleet_msg/srv/SendGoal "{robot_name: 'andino2', final_pose: [0.1,0,0]}"
+
+### Cancel a goal
+Once a goal is being executed, users can cancel it by specifying the robot name.
+
+```bash
+ros2 service call /cancel_goal_service andino_fleet_msg/srv/CancelGoal "{robot_name: 'andino2'}"
 ```
 
-### Navigation Task Sequence
+### Request for current states
+Users can retrieve a robot's current states, including its position [x, y, yaw], connectivity, and navigation status.
 
-This diagram illustrates the sequence of calls for a typical navigation task initiated by the Robot Client API.
-
-```mermaid
-sequenceDiagram
-    participant RCAPI as Robot Client API
-    participant FM as Fleet Manager
-    participant RH as Robot Handler
-    participant Robot as Robot (Nav2)
-
-    RCAPI->>FM: ROS 2 Service Call to /send_goal_server
-    FM->>RH: send_goal(pose)
-    RH->>Robot: Send action goal to /navigate_to_pose
-    Robot-->>RH: Feedback (e.g., navigating)
-    Robot-->>RH: Action Result (Success/Failure)
-    loop Periodically
-        Robot->>RH: Publishes position to /amcl_pose
-        RH->>RH: Updates internal state
-    end
+```bash
+ros2 service call /robot_pose_service andino_fleet_msg/srv/RequestRobotPosition "{robot_name: 'andino2'}"
 ```

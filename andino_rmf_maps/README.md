@@ -34,6 +34,7 @@ As stated before, the `andino_office.building.yaml` file was created using `traf
 
 4.  **Define the Environment**:
     *   **Walls**: Trace all the walls in the map. This is crucial for the robot's navigation and path planning.
+    *   **Vertices**: Define waypoints and robot spawning positions.
     *   **Lanes**: Draw the lanes that the robots are allowed to travel on. These lanes form the navigation graph.
 
 5.  **Configure Robot Spawn Points**:

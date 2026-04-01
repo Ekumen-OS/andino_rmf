@@ -63,7 +63,7 @@ class RobotAPI:
         ''' Return True if connection to the robot API server is successful'''
 
         while not (self._send_goal_client.wait_for_service(timeout_sec=1.0) and self._cancel_goal_client.wait_for_service(timeout_sec=1.0)):
-            self.node.get_logger().info('Fleet manager not available. Waiting again...')
+            pass
         return True
 
     def position(self, robot_name: str):
@@ -80,7 +80,7 @@ class RobotAPI:
 
 
         if resp.is_robot_connected is False:
-            self.node.get_logger().warning(f'{robot_name} is not online!')
+            self.node.get_logger().debug(f'{robot_name} is not online!')
             return None
         return resp.current_position
 
@@ -111,7 +111,7 @@ class RobotAPI:
         """Request the robot to stop.
         Return True if the robot has accepted the request, else False"""
 
-        self.node.get_logger().info(f"[{robot_name}] Stopping robot")
+        self.node.get_logger().debug(f"[{robot_name}] Stopping robot")
 
         cancel_goal_req = CancelGoal.Request()
         cancel_goal_req.robot_name = robot_name
@@ -132,7 +132,7 @@ class RobotAPI:
         self.executor.spin_until_future_complete(future)
         resp = future.result()
         if resp.is_robot_connected is False:
-            self.node.get_logger().warning(f'{robot_name} is not online!')
+            self.node.get_logger().debug(f'{robot_name} is not online!')
             return None
 
         # Estimate duration(s) := t = distance_remaining(m) / max_velocity(m/s)
@@ -153,7 +153,7 @@ class RobotAPI:
         self.executor.spin_until_future_complete(future)
         resp = future.result()
         if resp.is_robot_connected is False:
-            self.node.get_logger().warning(f'{robot_name} is not online!')
+            self.node.get_logger().debug(f'{robot_name} is not online!')
             return False
 
         return resp.is_navigation_completed

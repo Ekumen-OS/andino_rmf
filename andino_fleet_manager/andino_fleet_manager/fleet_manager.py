@@ -73,7 +73,7 @@ class AndinoFleetManager(Node):
                 self._pose_callback_group,
             )
 
-        self.get_logger().info("Andino Fleet Manager Started")
+        self.get_logger().debug("Andino Fleet Manager Started")
 
     def _initialize_services(self):
         self._send_goal_client = self.create_service(
@@ -88,7 +88,7 @@ class AndinoFleetManager(Node):
 
     def _send_goal_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
         if request.robot_name not in self._robot_dict:
-            self.get_logger().warning(
+            self.get_logger().warn(
                 f"Robot {request.robot_name} not found in fleet manager"
             )
             response.result = False

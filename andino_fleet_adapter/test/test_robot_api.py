@@ -5,7 +5,7 @@ To run the test,
 
 1. launch the simulation with controller servers.
 
-    ros2 launch andino_fleet_manager spawn_multiple_robot.launch.py
+    ros2 launch andino_rmf_gz spawn_multiple_robot.launch.py
 
 2. run the fleet manager.
 

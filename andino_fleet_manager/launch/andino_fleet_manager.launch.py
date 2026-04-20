@@ -7,7 +7,7 @@ from launch import LaunchDescription
 
 def generate_launch_description():
     robots_config_file = os.path.join(
-        get_package_share_directory("andino_fleet_manager"), "config/spawn_robots.yaml"
+        get_package_share_directory("andino_fleet_manager"), "config/robots_initial_pose.yaml"
     )
 
     fleet_manager = Node(

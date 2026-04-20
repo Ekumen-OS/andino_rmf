@@ -71,7 +71,7 @@ while [[ "$#" -gt 0 ]]; do
         -i|--image_name) IMAGE_NAME="${2}"; shift ;;
         -c|--container_name) CONTAINER_NAME="${2}"; shift ;;
         -h|--help) show_help ; exit 1 ;;
-        --use_nvidia) NVIDIA_FLAGS="--gpus=all -e NVIDIA_DRIVER_CAPABILITIES=all" ;;
+        --use_nvidia) NVIDIA_FLAGS="--gpus=all -e NVIDIA_DRIVER_CAPABILITIES=all -e NVIDIA_VISIBLE_DEVICES=all -e __NV_PRIME_RENDER_OFFLOAD=1 -e __GLX_VENDOR_LIBRARY_NAME=nvidia" ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift

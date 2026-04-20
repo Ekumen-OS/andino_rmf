@@ -47,22 +47,22 @@ class AndinoFleetManager(Node):
                 self._pose_callback_group,
             )
 
-        self.get_logger().info("Andino Fleet Manager Started")
+        self.get_logger().debug("Andino Fleet Manager Started")
 
     def _initialize_services(self):
-        self._send_goal_client = self.create_service(
-            SendGoal, "/send_goal_server", self._send_goal_callback
+        self._send_goal_server = self.create_service(
+            SendGoal, "/send_goal_service", self._send_goal_callback
         )
-        self._cancel_goal_client = self.create_service(
-            CancelGoal, "/cancel_goal_server", self._cancel_goal_callback
+        self._cancel_goal_server = self.create_service(
+            CancelGoal, "/cancel_goal_service", self._cancel_goal_callback
         )
-        self._robot_state_client = self.create_service(
-            RequestRobotPosition, "/robot_pose_server", self._robot_pose_callback
+        self._robot_state_server = self.create_service(
+            RequestRobotPosition, "/robot_pose_service", self._robot_pose_callback
         )
 
     def _send_goal_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
         if request.robot_name not in self._robot_dict:
-            self.get_logger().warning(
+            self.get_logger().warn(
                 f"Robot {request.robot_name} not found in fleet manager"
             )
             response.result = False
@@ -137,10 +137,13 @@ class AndinoFleetManager(Node):
         return response
 
     def _initial_pose_timer_callback(self):
-        initial_pose_published = True
+        all_initial_poses_published = True
         for robot_handler in self._robot_dict.values():
-            initial_pose_published = initial_pose_published and robot_handler.publish_initial_pose()
-        if initial_pose_published == ReturnFlag.SUCCESS:
+            if not robot_handler.initial_pose_published:
+                robot_handler.publish_initial_pose()
+                all_initial_poses_published = all_initial_poses_published and robot_handler.initial_pose_published
+        # Only cancel the timer when all initial poses have been published on the robots
+        if all_initial_poses_published:
             self._initial_pose_timer.cancel()
 
 

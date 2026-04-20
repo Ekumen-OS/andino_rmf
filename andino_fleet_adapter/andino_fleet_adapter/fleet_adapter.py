@@ -100,7 +100,6 @@ def initialize_fleet(config_yaml, nav_graph_path, node, use_sim_time, server_uri
     recharge_threshold = fleet_config['recharge_threshold']
     recharge_soc = fleet_config['recharge_soc']
     finishing_request = fleet_config['task_capabilities']['finishing_request']
-    node.get_logger().info(f"Finishing request: [{finishing_request}]")
     # Set task planner params
     ok = fleet_handle.set_task_planner_params(
         battery_sys,
@@ -182,7 +181,7 @@ def initialize_fleet(config_yaml, nav_graph_path, node, use_sim_time, server_uri
                 if position is None:
                     continue
                 if len(position) > 2:
-                    node.get_logger().info(f"Initializing robot: {robot_name}")
+                    node.get_logger().debug(f"Initializing robot: {robot_name}")
                     robots_config = config_yaml['robots'][robot_name]
                     rmf_config = robots_config['rmf_config']
                     robot_config = robots_config['robot_config']
@@ -194,10 +193,6 @@ def initialize_fleet(config_yaml, nav_graph_path, node, use_sim_time, server_uri
 
                     if (initial_waypoint is not None) and\
                             (initial_orientation is not None):
-                        node.get_logger().info(
-                            f"Using provided initial waypoint [{initial_waypoint}] "
-                            f"and orientation [{initial_orientation:.2f}] to "
-                            f"initialize starts for robot [{robot_name}]")
                         # Get the waypoint index for initial_waypoint
                         initial_waypoint_index = nav_graph.find_waypoint(
                             initial_waypoint).index
@@ -205,9 +200,6 @@ def initialize_fleet(config_yaml, nav_graph_path, node, use_sim_time, server_uri
                                              initial_waypoint_index,
                                              initial_orientation)]
                     else:
-                        node.get_logger().info(
-                            f"Running compute_plan_starts for robot: "
-                            "{robot_name}")
                         starts = plan.compute_plan_starts(
                             nav_graph,
                             rmf_config['start']['map_name'],

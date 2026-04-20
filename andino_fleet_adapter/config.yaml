@@ -8,7 +8,7 @@ rmf_fleet:
     user: "some_user"
     password: "some_password"
   limits:
-    linear: [0.4, 0.2] # velocity, acceleration
+    linear: [0.8, 0.2] # velocity, acceleration
     angular: [0.6, 0.35] # velocity, acceleration
   profile: # Robot profile is modelled as a circle
     footprint: 0.5 # radius in m
@@ -93,14 +93,18 @@ robots:
 # TRANSFORM CONFIG =============================================================
 # For computing transforms between Robot and RMF coordinate systems
 
+# These values were obtained by checking the position of each robot (andino1, andino2, andino3 and andino4) spawn on the Open
+# RMF map, using traffic editor (andino_office.building.yaml) and on nav2
 reference_coordinates:
   rmf: [
-        [4.6239, -10.0],
-        [4.8148, -14.8899],
-        [32.1555, -10.0]
+        [14.7103, -5.6540],
+        [18.9133, -5.6540],
+        [14.7103, -8.4559],
+        [18.9133, -8.2558]
   ]
   robot: [
-        [-12.3, 3.2],
-        [-12.1, -2.7],
-        [ 14.7, 3.2]
+        [-2.1, 4.7],
+        [1.7, 4.7],
+        [-2.1, 1.4],
+        [1.5, 1.8]
   ]

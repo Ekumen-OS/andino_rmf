@@ -51,6 +51,7 @@ class RobotHandler:
         self.robot_name = robot_name
         self._lock = lock
 
+        self.initial_pose_published = False
         self.initial_pose = initial_pose
         self._goal_handle: ClientGoalHandle = None
         self.current_pose: PoseWithCovarianceStamped = None
@@ -62,7 +63,7 @@ class RobotHandler:
 
         self.current_pose = self._get_initial_pose_msg(self.initial_pose)
 
-        self.node.get_logger().info(f"RobotHandler initialized for robot {robot_name}")
+        self.node.get_logger().debug(f"RobotHandler initialized for robot {robot_name}")
 
     def initialize_publishers_and_subscribers(self, callback_group: MutuallyExclusiveCallbackGroup):
         # Publisher for the initial pose
@@ -93,14 +94,13 @@ class RobotHandler:
             self.node, NavigateToPose, action_name, callback_group=callback_group
         )
 
-    def publish_initial_pose(self) -> ReturnFlag:
+    def publish_initial_pose(self) -> None:
         if self.initial_pose_publisher.get_subscription_count() == 0:
-            self.node.get_logger().debug(f"Initial pose could not be published for robot {self.robot_name} because there are no subscribers for the topic")
-            return ReturnFlag.NO_SUBSCRIBERS
+            self.node.get_logger().error(f"Initial pose could not be published for robot {self.robot_name} because there are no subscribers for the topic")
+            return
         initial_pose_msg = self._get_initial_pose_msg(self.initial_pose)
-        self.node.get_logger().info(f"Publishing initial pose for {self.robot_name}")
         self.initial_pose_publisher.publish(initial_pose_msg)
-        return ReturnFlag.SUCCESS
+        self.initial_pose_published = True
 
     def _get_initial_pose_msg(self, initial_pose: dict) -> PoseWithCovarianceStamped:
         initial_pose_msg = PoseWithCovarianceStamped()
@@ -173,10 +173,8 @@ class RobotHandler:
     def _goal_response_callback(self, future: Future):
         self._goal_handle = future.result()
         if not self._goal_handle.accepted:
-            self.node.get_logger().info(f"Goal rejected")
+            self.node.get_logger().error(f"Goal rejected")
             return
-
-        self.node.get_logger().info("Goal accepted")
 
         self._get_result_future = self._goal_handle.get_result_async()
         self._get_result_future.add_done_callback(self._get_result_callback)
@@ -187,7 +185,6 @@ class RobotHandler:
             return
         self._distance_remaining = 0.0
         self._navigation_completed = True
-        self.node.get_logger().info(f"Goal completed")
 
 
     def cancel_goal(self) -> ReturnFlag:

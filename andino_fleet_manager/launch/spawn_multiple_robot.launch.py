@@ -16,22 +16,31 @@ def convert_to_text(data: dict):
     return text
 
 def generate_launch_description():
-    config_name = 'spawn_robots.yaml'
-    config__file_path = os.path.join(get_package_share_directory('andino_fleet_manager'),'config',config_name)
-    with open(config__file_path,'r') as f:
-        config = yaml.load(f, Loader=yaml.SafeLoader)
+    robot_config_name = 'spawn_robots.yaml'
+    robot_config_file_path = os.path.join(get_package_share_directory('andino_fleet_manager'), 'config', robot_config_name)
+    with open(robot_config_file_path,'r') as f:
+        robot_config = yaml.load(f, Loader=yaml.SafeLoader)
 
-    # Convert dictionary to text for using as an spawning argument
-    config_txt = convert_to_text(config)
-    # Execute andino simulation
+    # Convert dictionary to text for using as a spawning argument
+    robot_config_txt = convert_to_text(robot_config)
+
+    # Launches the andino_gz simulation environment with the following configurations:
+    # - robots: Specifies the initial poses for multiple robots from the config file.
+    # - rviz: Enables the RViz visualization tool.
+    # - world_name: Sets the Gazebo world to 'office.sdf'.
+    # - map: Provides the 'office' map for Nav2.
+    # - nav2: Enables Nav2 for robot navigation and control.
+    # - autostart: Automatically starts the Gazebo simulation.
     robots = ExecuteProcess(
         cmd=[[
             'ros2 launch andino_gz andino_gz.launch.py ',
             'robots:=',
-            config_txt,
+            robot_config_txt,
+            ' rviz:=', 'True',
+            ' world_name:=', 'office.sdf',
+            ' map:=', 'office',
             ' nav2:=', 'True',
-            ' rviz:=', 'False',
-            ' world_name:=', 'populated_office.sdf',
+            ' autostart:=', 'True'
         ]],
         shell=True
     )

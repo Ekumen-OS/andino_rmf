@@ -28,10 +28,3 @@ andino4:
   y: -0.7451
   z: 0.1
   yaw: 0.0
-
-
-# Possibility: There's a transformation needed to be done 
-# between the pose in gazebo and the pose in RMF.
-# TODO: 
-# - Find this transformation
-# - Check if 

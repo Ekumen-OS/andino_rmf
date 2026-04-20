@@ -11,23 +11,9 @@ import sys
 import threading
 import yaml
 
-'''
-    The AndinoFleetManager class serves as the central coordinator for managing
-    multiple Andino robots in a fleet. It provides ROS2 services for sending
-    navigation goals, canceling goals, and querying robot positions. The fleet
-    manager maintains a collection of RobotHandler instances, each responsible
-    for managing individual robot state and communication.
-'''
-
-import argparse
-import sys
-import threading
-import yaml
-
 import rclpy
 import rclpy.executors as executors
 
-from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.node import Node
 from rclpy.service import SrvTypeRequest, SrvTypeResponse
@@ -39,12 +25,8 @@ from andino_fleet_msg.srv import SendGoal, CancelGoal, RequestRobotPosition
 class AndinoFleetManager(Node):
     def __init__(self, config_yaml: dict(), node_name: str = "andino_fleet_manager"):
 
-
         super().__init__(node_name)
         self._lock = threading.Lock()
-
-        self._goal_callback_group = MutuallyExclusiveCallbackGroup()
-        self._pose_callback_group = MutuallyExclusiveCallbackGroup()
 
         self._goal_callback_group = MutuallyExclusiveCallbackGroup()
         self._pose_callback_group = MutuallyExclusiveCallbackGroup()
@@ -64,26 +46,18 @@ class AndinoFleetManager(Node):
                 self._goal_callback_group,
                 self._pose_callback_group,
             )
-            self._robot_dict[robot_name] = RobotHandler(
-                self,
-                robot_name,
-                initial_pose,
-                self._lock,
-                self._goal_callback_group,
-                self._pose_callback_group,
-            )
 
         self.get_logger().debug("Andino Fleet Manager Started")
 
     def _initialize_services(self):
-        self._send_goal_client = self.create_service(
-            SendGoal, "/send_goal_server", self._send_goal_callback
+        self._send_goal_server = self.create_service(
+            SendGoal, "/send_goal_service", self._send_goal_callback
         )
         self._cancel_goal_server = self.create_service(
             CancelGoal, "/cancel_goal_service", self._cancel_goal_callback
         )
-        self._robot_state_client = self.create_service(
-            RequestRobotPosition, "/robot_pose_server", self._robot_pose_callback
+        self._robot_state_server = self.create_service(
+            RequestRobotPosition, "/robot_pose_service", self._robot_pose_callback
         )
 
     def _send_goal_callback(self, request: SrvTypeRequest, response: SrvTypeResponse):
@@ -163,7 +137,7 @@ class AndinoFleetManager(Node):
         return response
 
     def _initial_pose_timer_callback(self):
-        initial_pose_published = True
+        all_initial_poses_published = True
         for robot_handler in self._robot_dict.values():
             if not robot_handler.initial_pose_published:
                 robot_handler.publish_initial_pose()
@@ -201,7 +175,6 @@ def main(argv=sys.argv):
         executor.spin()
     except KeyboardInterrupt:
         fleet_manager.destroy_node()
-        fleet_manager.get_logger().info("KeyboardInterrupt. Shutting Down...")
         fleet_manager.get_logger().info("KeyboardInterrupt. Shutting Down...")
 
 

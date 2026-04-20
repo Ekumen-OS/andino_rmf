@@ -24,7 +24,6 @@ import rclpy
 import rclpy.executors
 from rclpy.node import Node
 from andino_fleet_msg.srv import SendGoal, CancelGoal, RequestRobotPosition
-from andino_fleet_msg.srv import SendGoal, CancelGoal, RequestRobotPosition
 
 
 class RobotAPI:
@@ -99,6 +98,7 @@ class RobotAPI:
         self.executor.spin_until_future_complete(future)
         resp = future.result()
         return resp.result
+        return resp.result
 
     def start_process(self, robot_name: str, process: str, map_name: str):
         """Request the robot to begin a process.
@@ -119,11 +119,15 @@ class RobotAPI:
 
         self.executor.spin_until_future_complete(future)
         resp = future.result()
-        return resp.result
+        if resp.result == True:
+            return True
+
+        return False
 
     def navigation_remaining_duration(self, robot_name: str):
         ''' Return the number of seconds remaining for the robot to reach its
             destination'''
+
 
         robot_state_req = RequestRobotPosition.Request()
         robot_state_req.robot_name = robot_name
@@ -136,12 +140,9 @@ class RobotAPI:
             return None
 
         # Estimate duration(s) := t = distance_remaining(m) / max_velocity(m/s)
-
-        # Estimate duration(s) := t = distance_remaining(m) / max_velocity(m/s)
         duration = resp.distance_remaining / resp.max_lin_velocity
 
         return duration
-
 
     def navigation_completed(self, robot_name: str):
         ''' Return True if the robot has successfully completed its previous

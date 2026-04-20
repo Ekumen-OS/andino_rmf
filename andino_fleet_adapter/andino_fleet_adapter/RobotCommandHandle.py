@@ -189,13 +189,6 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                         target_pose[:2])
                     theta = target_pose[2] + \
                         self.transforms['orientation_offset']
-                    # ------------------------ #
-                    # IMPLEMENT YOUR CODE HERE #
-                    # Ensure x, y, theta are in units that api.navigate() #
-                    self.node.get_logger().debug(f"[Follow new path] {self.name} | State = IDLE")
-                    self.node.get_logger().debug(f"[Follow new path] {self.name} | Current coordinates: X: {x} | Y: {y}")
-
-                    # ------------------------ #
 
                     response = self.api.navigate(self.name,
                                                  [x, y, theta],
@@ -217,9 +210,6 @@ class RobotCommandHandle(adpt.RobotCommandHandle):
                                 self.state = RobotState.IDLE
                             else:
                                 if self.path_index is not None:
-                                    # self.node.get_logger().info(
-                                    #     f"{self.name} Waiting for "
-                                    #     f"{(waypoint_wait_time - time_now).seconds}s")
                                     self.next_arrival_estimator(
                                         self.path_index, timedelta(seconds=0.0))
 

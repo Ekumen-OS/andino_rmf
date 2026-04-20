@@ -29,6 +29,7 @@ class ReturnFlag(Enum):
     UNINITIALIZED_GOAL_HANDLE = 2
     NO_SUBSCRIBERS = 3
 
+
 class RobotHandler:
     VAR_XY = 0.25
     VAR_YAW = 0.0685
@@ -50,6 +51,7 @@ class RobotHandler:
         self.robot_name = robot_name
         self._lock = lock
 
+        self.initial_pose_published = False
         self.initial_pose = initial_pose
         self._goal_handle: ClientGoalHandle = None
         self.current_pose: PoseWithCovarianceStamped = None
@@ -92,13 +94,13 @@ class RobotHandler:
             self.node, NavigateToPose, action_name, callback_group=callback_group
         )
 
-    def publish_initial_pose(self) -> ReturnFlag:
+    def publish_initial_pose(self) -> None:
         if self.initial_pose_publisher.get_subscription_count() == 0:
             self.node.get_logger().error(f"Initial pose could not be published for robot {self.robot_name} because there are no subscribers for the topic")
             return
         initial_pose_msg = self._get_initial_pose_msg(self.initial_pose)
         self.initial_pose_publisher.publish(initial_pose_msg)
-        return ReturnFlag.SUCCESS
+        self.initial_pose_published = True
 
     def _get_initial_pose_msg(self, initial_pose: dict) -> PoseWithCovarianceStamped:
         initial_pose_msg = PoseWithCovarianceStamped()

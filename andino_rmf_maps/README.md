@@ -1,5 +1,5 @@
 # RMF Maps Package
-This package contains the resources used by RMF Traffic Editor to create a simulation and a navigation graph.
+This package contains the resources used by [RMF Traffic Editor](https://osrf.github.io/ros2multirobotbook/traffic-editor.html) to create a simulation and a navigation graph.
 
 These files include:
 - A 2D map for the andino office world named *andino_office.png*
@@ -15,3 +15,34 @@ colcon build --packages-select andino_rmf_maps
 
 Once being compiled, world file and navgraph will be generated inside the shared folder automatically.
 
+## Generating the Building YAML
+
+As stated before, the `andino_office.building.yaml` file was created using `traffic-editor`, which is part of the Open-RMF suite. The following steps outline the process followed to generate this file:
+
+1.  **Obtain the Base Map**:
+    *   A PNG image of the map is required. For this project, the PGM file from the `andino_gz` repository was converted to PNG format.
+
+2.  **Create the Building File**:
+    *   Launch the `traffic-editor`.
+    *   Create a new `.building.yaml` file.
+    *   Add a new level to the building and import the PNG map image.
+
+3.  **Set the Scale**:
+    *   To ensure the map is scaled correctly, measure a real-world distance in your environment (e.g., the length of a wall).
+    *   Use the measurement tool in the `traffic-editor` to draw a line corresponding to the measured feature and enter the real-world distance.
+    *   Save the file, close the editor, and reopen it to ensure the new scale is applied correctly.
+
+4.  **Define the Environment**:
+    *   **Walls**: Trace all the walls in the map. This is crucial for the robot's navigation and path planning.
+    *   **Vertices**: Define waypoints and robot spawning positions.
+    *   **Lanes**: Draw the lanes that the robots are allowed to travel on. These lanes form the navigation graph.
+
+5.  **Configure Robot Spawn Points**:
+    *   Designate specific vertices on the map for robot functions. These can be:
+        *   `charger`: A location where a robot can charge.
+        *   `holding_point`: A waiting area for robots.
+        *   `parking_spot`: A designated parking spot.
+    *   For each relevant vertex, set the robot's name (e.g., `andino1`) and type (e.g., `Andino`).
+
+6.  **Save**:
+    *   Save the final `.building.yaml` file. This file now contains the map, navigation graph, and robot-specific configurations.

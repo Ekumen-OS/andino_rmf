@@ -57,7 +57,6 @@ class RobotAPI:
     def get_node(self):
         return self.node
 
-
     def check_connection(self):
         ''' Return True if connection to the robot API server is successful'''
 
@@ -71,12 +70,10 @@ class RobotAPI:
         robot_state_req = RequestRobotPosition.Request()
         robot_state_req.robot_name = robot_name
 
-
         future = self._robot_state_client.call_async(robot_state_req)
 
         self.executor.spin_until_future_complete(future)
         resp = future.result()
-
 
         if resp.is_robot_connected is False:
             self.node.get_logger().debug(f'{robot_name} is not online!')
@@ -98,11 +95,8 @@ class RobotAPI:
         self.executor.spin_until_future_complete(future)
         resp = future.result()
         return resp.result
-        return resp.result
 
     def start_process(self, robot_name: str, process: str, map_name: str):
-        """Request the robot to begin a process.
-        Return True if the robot has accepted the request, else False"""
         """Request the robot to begin a process.
         Return True if the robot has accepted the request, else False"""
         return False
@@ -127,7 +121,6 @@ class RobotAPI:
     def navigation_remaining_duration(self, robot_name: str):
         ''' Return the number of seconds remaining for the robot to reach its
             destination'''
-
 
         robot_state_req = RequestRobotPosition.Request()
         robot_state_req.robot_name = robot_name
